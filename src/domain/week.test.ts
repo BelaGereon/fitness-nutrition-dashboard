@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { computeWeekMetrics, type WeekEntry } from "./week";
+import { beforeEach, describe, expect, it } from "vitest";
+import { computeWeekMetrics, type WeekEntry, type WeekMetrics } from "./week";
 
 const makeEmptyWeek = (overrides: Partial<WeekEntry> = {}): WeekEntry => ({
   id: "week-1",
@@ -31,7 +31,11 @@ const week: WeekEntry = makeEmptyWeek({
 });
 
 describe("computeWeekMetrics", () => {
-  const metrics = computeWeekMetrics(week);
+  let metrics: WeekMetrics | undefined;
+
+  beforeEach(() => {
+    metrics = computeWeekMetrics(week);
+  });
 
   it("computes the average weight correctly", () => {
     expect(metrics?.avgWeightKg).toBeCloseTo(
