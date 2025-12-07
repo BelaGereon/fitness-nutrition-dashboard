@@ -28,6 +28,12 @@ export interface WeekMetrics {
   avgProteinPerKg?: number;
 }
 
+export interface WeekTrendMetrics extends WeekMetrics {
+  weekOf: string;
+  weightChangeVsPrevKg?: number;
+  weightChangeVsPrevPercent?: number;
+}
+
 export const DAY_IDS: DayId[] = [
   "mon",
   "tue",
@@ -73,6 +79,10 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
   };
 
   return weekMetrics;
+}
+
+export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
+  return [...weeks];
 }
 
 const total = (numbers: number[]): number => {
