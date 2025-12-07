@@ -76,6 +76,7 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
 }
 
 const total = (numbers: number[]): number => {
+  if (numbers.length === 0) return 0;
   return numbers.reduce((sum, n) => sum + n, 0);
 };
 
