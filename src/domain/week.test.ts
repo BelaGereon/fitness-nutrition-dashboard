@@ -56,7 +56,12 @@ describe("computeWeekMetrics", () => {
     );
   });
 
-  it.todo("computes average protein correctly");
+  it("computes average protein correctly", () => {
+    expect(metrics.avgProteinG).toBeCloseTo(
+      (150 + 160 + 155 + 170 + 165 + 180) / 6
+    );
+  });
+
   it.todo("computes average protein per kg correctly");
   it.todo("returns undefined for all metrics if no data is present");
 });
