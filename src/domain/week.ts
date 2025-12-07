@@ -27,3 +27,21 @@ export interface WeekMetrics {
   avgProteinG?: number;
   avgProteinPerKg?: number;
 }
+
+export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
+  const weights: number[] = [];
+
+  for (const dayId of Object.keys(week.days) as DayId[]) {
+    const day = week.days[dayId];
+    if (day.weightKg !== undefined) {
+      weights.push(day.weightKg);
+    }
+  }
+
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+  const avgWeightKg = totalWeight / weights.length;
+
+  return {
+    avgWeightKg,
+  };
+}
