@@ -40,30 +40,30 @@ describe("computeWeekMetrics", () => {
   const metrics = computeWeekMetrics(week);
 
   it("computes the averare weight correctly", () => {
-    expect(metrics.avgWeightKg).toBeCloseTo(
+    expect(metrics?.avgWeightKg).toBeCloseTo(
       (78.7 + 78.0 + 77.8 + 78.7 + 78.5 + 79.0) / 6
     );
   });
 
   it("computes min and max weight correctly", () => {
-    expect(metrics.minWeightKg).toBe(77.8);
-    expect(metrics.maxWeightKg).toBe(79.0);
+    expect(metrics?.minWeightKg).toBe(77.8);
+    expect(metrics?.maxWeightKg).toBe(79.0);
   });
 
   it("computes average calories correctly", () => {
-    expect(metrics.avgCalories).toBeCloseTo(
+    expect(metrics?.avgCalories).toBeCloseTo(
       (2800 + 2700 + 2600 + 2900 + 3000 + 3100) / 6
     );
   });
 
   it("computes average protein correctly", () => {
-    expect(metrics.avgProteinG).toBeCloseTo(
+    expect(metrics?.avgProteinG).toBeCloseTo(
       (150 + 160 + 155 + 170 + 165 + 180) / 6
     );
   });
 
   it("computes average protein per kg correctly", () => {
-    expect(metrics.avgProteinPerKg).toBeCloseTo(
+    expect(metrics?.avgProteinPerKg).toBeCloseTo(
       (150 / 78.7 +
         160 / 78.0 +
         155 / 77.8 +
