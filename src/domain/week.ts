@@ -60,10 +60,8 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
   const minWeightKg = !isWeightDataEmpty ? Math.min(...weights) : undefined;
   const maxWeightKg = !isWeightDataEmpty ? Math.max(...weights) : undefined;
 
-  const avgProteinPerKg =
-    avgProteinG !== undefined && avgWeightKg !== undefined
-      ? avgProteinG / avgWeightKg
-      : undefined;
+  const perDayProteinPerKg: number[] = calcDailyProteinRatios(week);
+  const avgProteinPerKg = avg(perDayProteinPerKg);
 
   const weekMetrics: WeekMetrics = {
     avgWeightKg,
@@ -98,4 +96,15 @@ const gatherDataFromWeekDays = (
     }
   }
   return data;
+};
+
+const calcDailyProteinRatios = (week: WeekEntry): number[] => {
+  const dailyProteinRatios: number[] = [];
+  for (const dayId of DAY_IDS) {
+    const day = week.days[dayId];
+    if (day.proteinG !== undefined && day.weightKg !== undefined) {
+      dailyProteinRatios.push(day.proteinG / day.weightKg);
+    }
+  }
+  return dailyProteinRatios;
 };
