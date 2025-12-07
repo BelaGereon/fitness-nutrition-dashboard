@@ -29,14 +29,7 @@ export interface WeekMetrics {
 }
 
 export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
-  const weights: number[] = [];
-
-  for (const dayId of Object.keys(week.days) as DayId[]) {
-    const day = week.days[dayId];
-    if (day.weightKg !== undefined) {
-      weights.push(day.weightKg);
-    }
-  }
+  const weights: number[] = gatherDailyWeights(week);
 
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   const avgWeightKg = totalWeight / weights.length;
@@ -49,3 +42,14 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
     maxWeightKg,
   };
 }
+
+const gatherDailyWeights = (week: WeekEntry): number[] => {
+  const weights: number[] = [];
+  for (const dayId of Object.keys(week.days) as DayId[]) {
+    const day = week.days[dayId];
+    if (day.weightKg !== undefined) {
+      weights.push(day.weightKg);
+    }
+  }
+  return weights;
+};
