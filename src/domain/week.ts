@@ -33,6 +33,13 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
   const calories: number[] = gatherDataFromWeekDays(week, "calories");
   const protein: number[] = gatherDataFromWeekDays(week, "proteinG");
 
+  const isWeekDataEmpty =
+    weights.length === 0 && calories.length === 0 && protein.length === 0;
+
+  if (isWeekDataEmpty) {
+    return {};
+  }
+
   const avgWeightKg = avg(weights);
   const minWeightKg = Math.min(...weights);
   const maxWeightKg = Math.max(...weights);
@@ -45,7 +52,7 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
       ? avgProteinG / avgWeightKg
       : undefined;
 
-  return {
+  const weekMetrics: WeekMetrics = {
     avgWeightKg,
     minWeightKg,
     maxWeightKg,
@@ -53,6 +60,8 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
     avgProteinG,
     avgProteinPerKg,
   };
+
+  return weekMetrics;
 }
 
 const total = (numbers: number[]): number => {

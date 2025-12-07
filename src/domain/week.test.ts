@@ -78,6 +78,11 @@ describe("computeWeekMetrics", () => {
     const emptyWeek = makeEmptyWeek();
     const emptyMetrics = computeWeekMetrics(emptyWeek);
 
-    expect(emptyMetrics).toBeUndefined();
+    expect(emptyMetrics.avgWeightKg).toBeUndefined();
+    expect(emptyMetrics.minWeightKg).toBeUndefined();
+    expect(emptyMetrics.maxWeightKg).toBeUndefined();
+    expect(emptyMetrics.avgCalories).toBeUndefined();
+    expect(emptyMetrics.avgProteinG).toBeUndefined();
+    expect(emptyMetrics.avgProteinPerKg).toBeUndefined();
   });
 });
