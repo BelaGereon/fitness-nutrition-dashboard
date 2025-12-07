@@ -33,7 +33,7 @@ const week: WeekEntry = makeEmptyWeek({
 describe("computeWeekMetrics", () => {
   const metrics = computeWeekMetrics(week);
 
-  it("computes the averare weight correctly", () => {
+  it("computes the average weight correctly", () => {
     expect(metrics?.avgWeightKg).toBeCloseTo(
       (78.7 + 78.0 + 77.8 + 78.7 + 78.5 + 79.0) / 6
     );
