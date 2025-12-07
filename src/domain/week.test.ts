@@ -62,6 +62,17 @@ describe("computeWeekMetrics", () => {
     );
   });
 
-  it.todo("computes average protein per kg correctly");
+  it("computes average protein per kg correctly", () => {
+    expect(metrics.avgProteinPerKg).toBeCloseTo(
+      (150 / 78.7 +
+        160 / 78.0 +
+        155 / 77.8 +
+        170 / 78.7 +
+        165 / 78.5 +
+        180 / 79.0) /
+        6
+    );
+  });
+
   it.todo("returns undefined for all metrics if no data is present");
 });
