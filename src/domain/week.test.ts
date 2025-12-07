@@ -74,5 +74,10 @@ describe("computeWeekMetrics", () => {
     );
   });
 
-  it.todo("returns undefined for all metrics if no data is present");
+  it("returns undefined for all metrics if no data is present", () => {
+    const emptyWeek = makeEmptyWeek();
+    const emptyMetrics = computeWeekMetrics(emptyWeek);
+
+    expect(emptyMetrics).toBeUndefined();
+  });
 });
