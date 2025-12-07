@@ -28,7 +28,17 @@ export interface WeekMetrics {
   avgProteinPerKg?: number;
 }
 
-export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
+export const DAY_IDS: DayId[] = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+];
+
+export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
   const weights: number[] = gatherDataFromWeekDays(week, "weightKg");
   const calories: number[] = gatherDataFromWeekDays(week, "calories");
   const protein: number[] = gatherDataFromWeekDays(week, "proteinG");
@@ -40,7 +50,7 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
     isWeightDataEmpty && isCaloriesDataEmpty && isProteinDataEmpty;
 
   if (isWeekDataEmpty) {
-    return {};
+    return undefined;
   }
 
   const avgWeightKg = avg(weights);
@@ -81,7 +91,7 @@ const gatherDataFromWeekDays = (
   key: keyof DayEntry
 ): number[] => {
   const data: number[] = [];
-  for (const dayId of Object.keys(week.days) as DayId[]) {
+  for (const dayId of DAY_IDS) {
     const day = week.days[dayId];
     if (day[key] !== undefined) {
       data.push(day[key] as number);
