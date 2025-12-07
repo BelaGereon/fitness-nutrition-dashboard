@@ -29,8 +29,8 @@ export interface WeekMetrics {
 }
 
 export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
-  const weights: number[] = gatherDailyWeightsFromWeek(week);
-  const calories: number[] = gatherDailyCaloriesFromWeek(week);
+  const weights: number[] = gatherDataFromWeekDays(week, "weightKg");
+  const calories: number[] = gatherDataFromWeekDays(week, "calories");
 
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   const avgWeightKg = totalWeight / weights.length;
@@ -48,24 +48,16 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
   };
 }
 
-const gatherDailyWeightsFromWeek = (week: WeekEntry): number[] => {
-  const weights: number[] = [];
+const gatherDataFromWeekDays = (
+  week: WeekEntry,
+  key: keyof DayEntry
+): number[] => {
+  const data: number[] = [];
   for (const dayId of Object.keys(week.days) as DayId[]) {
     const day = week.days[dayId];
-    if (day.weightKg !== undefined) {
-      weights.push(day.weightKg);
+    if (day[key] !== undefined) {
+      data.push(day[key] as number);
     }
   }
-  return weights;
-};
-
-const gatherDailyCaloriesFromWeek = (week: WeekEntry): number[] => {
-  const calories: number[] = [];
-  for (const dayId of Object.keys(week.days) as DayId[]) {
-    const day = week.days[dayId];
-    if (day.calories !== undefined) {
-      calories.push(day.calories);
-    }
-  }
-  return calories;
+  return data;
 };
