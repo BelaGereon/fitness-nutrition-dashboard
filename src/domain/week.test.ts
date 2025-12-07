@@ -80,4 +80,80 @@ describe("computeWeekMetrics", () => {
 
     expect(emptyMetrics).toBeUndefined();
   });
+
+  it("computes calorie averages even when no weight/protein is present", () => {
+    const week = makeEmptyWeek({
+      days: {
+        mon: { calories: 2500 },
+        tue: { calories: 2700 },
+        wed: {},
+        thu: { calories: 2600 },
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+    });
+
+    const metrics = computeWeekMetrics(week);
+
+    expect(metrics).toBeDefined();
+    expect(metrics?.avgCalories).toBeCloseTo((2500 + 2700 + 2600) / 3, 5);
+    expect(metrics?.avgWeightKg).toBeUndefined();
+    expect(metrics?.avgProteinG).toBeUndefined();
+  });
+
+  it("does not produce Infinity/-Infinity when no weights are present", () => {
+    const week = makeEmptyWeek({
+      days: {
+        mon: { calories: 2500, proteinG: 150 },
+        tue: { calories: 2700, proteinG: 160 },
+        wed: {},
+        thu: {},
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+    });
+
+    const metrics = computeWeekMetrics(week);
+
+    expect(metrics?.avgWeightKg).toBeUndefined();
+    expect(metrics?.minWeightKg).toBeUndefined();
+    expect(metrics?.maxWeightKg).toBeUndefined();
+  });
+
+  it("returns undefined for avgProteinPerKG when no weight is present", () => {
+    const week = makeEmptyWeek({
+      days: {
+        mon: { proteinG: 150 },
+        tue: { proteinG: 160 },
+        wed: {},
+        thu: { proteinG: 155 },
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+    });
+    const metrics = computeWeekMetrics(week);
+
+    expect(metrics?.avgProteinG).toBeCloseTo((150 + 160 + 155) / 3, 5);
+    expect(metrics?.avgProteinPerKg).toBeUndefined();
+  });
+
+  it("returns undefined for avgProteinPerKG when no protein is present", () => {
+    const week = makeEmptyWeek({
+      days: {
+        mon: { weightKg: 78.5 },
+        tue: { weightKg: 78.0 },
+        wed: {},
+        thu: { weightKg: 77.5 },
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+    });
+    const metrics = computeWeekMetrics(week);
+
+    expect(metrics?.avgProteinPerKg).toBeUndefined();
+  });
 });
