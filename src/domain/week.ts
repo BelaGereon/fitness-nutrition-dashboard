@@ -82,7 +82,11 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
 }
 
 export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
-  return [...weeks];
+  const sortedWeeks = [...weeks].sort((a, b) =>
+    a.weekOf.localeCompare(b.weekOf)
+  );
+
+  return sortedWeeks;
 }
 
 const total = (numbers: number[]): number => {
