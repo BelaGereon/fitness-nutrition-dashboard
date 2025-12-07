@@ -50,7 +50,12 @@ describe("computeWeekMetrics", () => {
     expect(metrics.maxWeightKg).toBe(79.0);
   });
 
-  it.todo("computes average calories correctly");
+  it("computes average calories correctly", () => {
+    expect(metrics.avgCalories).toBeCloseTo(
+      (2800 + 2700 + 2600 + 2900 + 3000 + 3100) / 6
+    );
+  });
+
   it.todo("computes average protein correctly");
   it.todo("computes average protein per kg correctly");
   it.todo("returns undefined for all metrics if no data is present");
