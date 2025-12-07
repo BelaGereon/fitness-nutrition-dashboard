@@ -33,8 +33,11 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
   const calories: number[] = gatherDataFromWeekDays(week, "calories");
   const protein: number[] = gatherDataFromWeekDays(week, "proteinG");
 
+  const isWeightDataEmpty = weights.length === 0;
+  const isCaloriesDataEmpty = calories.length === 0;
+  const isProteinDataEmpty = protein.length === 0;
   const isWeekDataEmpty =
-    weights.length === 0 && calories.length === 0 && protein.length === 0;
+    isWeightDataEmpty && isCaloriesDataEmpty && isProteinDataEmpty;
 
   if (isWeekDataEmpty) {
     return {};
