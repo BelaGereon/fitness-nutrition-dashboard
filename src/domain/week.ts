@@ -31,6 +31,7 @@ export interface WeekMetrics {
 export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
   const weights: number[] = gatherDataFromWeekDays(week, "weightKg");
   const calories: number[] = gatherDataFromWeekDays(week, "calories");
+  const protein: number[] = gatherDataFromWeekDays(week, "proteinG");
 
   const avgWeightKg = avg(weights);
   const minWeightKg = Math.min(...weights);
@@ -38,11 +39,14 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
 
   const avgCalories = avg(calories);
 
+  const avgProteinG = avg(protein);
+
   return {
     avgWeightKg,
     minWeightKg,
     maxWeightKg,
     avgCalories,
+    avgProteinG,
   };
 }
 
