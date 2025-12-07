@@ -4,7 +4,6 @@ import { computeWeekMetrics, type WeekEntry } from "./week";
 const makeEmptyWeek = (overrides: Partial<WeekEntry> = {}): WeekEntry => ({
   id: "week-1",
   weekOf: "2025-11-24",
-  avgStepsPerDay: undefined,
   days: {
     mon: {},
     tue: {},
@@ -14,11 +13,6 @@ const makeEmptyWeek = (overrides: Partial<WeekEntry> = {}): WeekEntry => ({
     sat: {},
     sun: {},
   },
-  trainingSessionsDescription: undefined,
-  totalSets: undefined,
-  totalVolumeKg: undefined,
-  notes: undefined,
-  otherNotes: undefined,
   ...overrides,
 });
 
