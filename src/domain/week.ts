@@ -40,8 +40,12 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
 
   const totalWeight = weights.reduce((sum, w) => sum + w, 0);
   const avgWeightKg = totalWeight / weights.length;
+  const minWeightKg = Math.min(...weights);
+  const maxWeightKg = Math.max(...weights);
 
   return {
     avgWeightKg,
+    minWeightKg,
+    maxWeightKg,
   };
 }
