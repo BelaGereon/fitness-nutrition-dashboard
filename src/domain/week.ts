@@ -40,6 +40,10 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
   const avgCalories = avg(calories);
 
   const avgProteinG = avg(protein);
+  const avgProteinPerKg =
+    avgProteinG !== undefined && avgWeightKg !== undefined
+      ? avgProteinG / avgWeightKg
+      : undefined;
 
   return {
     avgWeightKg,
@@ -47,6 +51,7 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics {
     maxWeightKg,
     avgCalories,
     avgProteinG,
+    avgProteinPerKg,
   };
 }
 
