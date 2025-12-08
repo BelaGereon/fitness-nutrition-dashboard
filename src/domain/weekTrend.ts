@@ -33,17 +33,17 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
         prevWeekMetrics
       );
 
-      trendMetric.weightChangeVsPrevKg = parseFloat(
-        weightDiffKg?.toFixed(2) ?? "0"
-      );
-      trendMetric.weightChangeVsPrevPercent = parseFloat(
-        weightDiffPerc?.toFixed(2) ?? "0"
-      );
+      trendMetric.weightChangeVsPrevKg =
+        weightDiffKg !== undefined
+          ? parseFloat(weightDiffKg.toFixed(2))
+          : undefined;
+      trendMetric.weightChangeVsPrevPercent =
+        weightDiffPerc !== undefined
+          ? parseFloat(weightDiffPerc.toFixed(2))
+          : undefined;
     }
-
     trendMetrics.push(trendMetric);
   }
-
   return trendMetrics;
 }
 
