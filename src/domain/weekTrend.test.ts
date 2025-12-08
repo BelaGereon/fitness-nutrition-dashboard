@@ -87,4 +87,28 @@ describe("computeTrendMetrics", () => {
     expect(trends[1].weightChangeVsPrevKg).toBeUndefined();
     expect(trends[2].weightChangeVsPrevKg).toBe(-1); // or -1.00 depending on rounding
   });
+
+  it("handles weeks with no weight data at all", () => {
+    const w1: WeekEntry = {
+      id: "w1",
+      weekOf: "2025-11-17",
+      days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
+    };
+    const w2: WeekEntry = {
+      id: "w2",
+      weekOf: "2025-11-27",
+      days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
+    };
+    const w3: WeekEntry = {
+      id: "w3",
+      weekOf: "2025-12-04",
+      days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
+    };
+
+    const trends = computeTrendMetrics([w1, w2, w3]);
+
+    expect(trends[0].avgWeightKg).toBeUndefined();
+    expect(trends[1].avgWeightKg).toBeUndefined();
+    expect(trends[2].avgWeightKg).toBeUndefined();
+  });
 });
