@@ -88,6 +88,7 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
   const trendMetrics: WeekTrendMetrics[] = [];
 
   for (let i = 0; i < sortedWeeks.length; i++) {
+    const hasPrevWeek = i > 0;
     const week = sortedWeeks[i];
     const weekMetrics = computeWeekMetrics(week);
 
@@ -95,24 +96,34 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
       weekOf: week.weekOf,
       ...weekMetrics,
     };
-    if (i > 0) {
+
+    if (hasPrevWeek) {
       const prevWeekMetrics = trendMetrics[i - 1];
-      if (
-        weekMetrics?.avgWeightKg !== undefined &&
-        prevWeekMetrics.avgWeightKg !== undefined
-      ) {
-        const weightChangeVsPrevKg =
-          weekMetrics.avgWeightKg - prevWeekMetrics.avgWeightKg;
-        trendMetric.weightChangeVsPrevKg = parseFloat(
-          weightChangeVsPrevKg.toFixed(2)
-        );
-      }
+      const weightDiff = calcWeightChangeVsPrevKg(weekMetrics, prevWeekMetrics);
+
+      trendMetric.weightChangeVsPrevKg = parseFloat(
+        weightDiff?.toFixed(2) ?? "0"
+      );
     }
+
     trendMetrics.push(trendMetric);
   }
 
   return trendMetrics;
 }
+
+const calcWeightChangeVsPrevKg = (
+  weekMetrics: WeekMetrics | undefined,
+  prevWeekMetrics: WeekMetrics | undefined
+): number => {
+  if (
+    weekMetrics?.avgWeightKg !== undefined &&
+    prevWeekMetrics?.avgWeightKg !== undefined
+  ) {
+    return weekMetrics.avgWeightKg - prevWeekMetrics.avgWeightKg;
+  }
+  return 0;
+};
 
 const total = (numbers: number[]): number => {
   if (numbers.length === 0) return 0;
