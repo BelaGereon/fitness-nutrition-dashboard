@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { computeTrendMetrics, type WeekEntry } from "./week";
+import { type WeekEntry } from "./week";
+import { computeTrendMetrics } from "./weekTrend";
 
 const makeWeekWithAvgWeight = (
   weekOf: string,
