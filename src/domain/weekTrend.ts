@@ -1,5 +1,11 @@
 import { computeWeekMetrics, type WeekEntry, type WeekMetrics } from "./week";
 
+export interface WeekTrendMetrics extends WeekMetrics {
+  weekOf: string;
+  weightChangeVsPrevKg?: number;
+  weightChangeVsPrevPercent?: number;
+}
+
 export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
   const sortedWeeks = [...weeks].sort((a, b) =>
     a.weekOf.localeCompare(b.weekOf)
@@ -40,7 +46,8 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
 
   return trendMetrics;
 }
-export const calcWeightChangeVsPrevKg = (
+
+const calcWeightChangeVsPrevKg = (
   weekMetrics: WeekMetrics | undefined,
   prevWeekMetrics: WeekMetrics | undefined
 ): number | undefined => {
@@ -53,7 +60,7 @@ export const calcWeightChangeVsPrevKg = (
   return undefined;
 };
 
-export const calcWeightChangeVsPrevPercent = (
+const calcWeightChangeVsPrevPercent = (
   weekMetrics: WeekMetrics | undefined,
   prevWeekMetrics: WeekMetrics | undefined
 ): number | undefined => {
@@ -67,8 +74,3 @@ export const calcWeightChangeVsPrevPercent = (
   }
   return undefined;
 };
-export interface WeekTrendMetrics extends WeekMetrics {
-  weekOf: string;
-  weightChangeVsPrevKg?: number;
-  weightChangeVsPrevPercent?: number;
-}
