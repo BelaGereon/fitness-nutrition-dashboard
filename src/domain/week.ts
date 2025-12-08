@@ -85,8 +85,33 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
   const sortedWeeks = [...weeks].sort((a, b) =>
     a.weekOf.localeCompare(b.weekOf)
   );
+  const trendMetrics: WeekTrendMetrics[] = [];
 
-  return sortedWeeks;
+  for (let i = 0; i < sortedWeeks.length; i++) {
+    const week = sortedWeeks[i];
+    const weekMetrics = computeWeekMetrics(week);
+
+    const trendMetric: WeekTrendMetrics = {
+      weekOf: week.weekOf,
+      ...weekMetrics,
+    };
+    if (i > 0) {
+      const prevWeekMetrics = trendMetrics[i - 1];
+      if (
+        weekMetrics?.avgWeightKg !== undefined &&
+        prevWeekMetrics.avgWeightKg !== undefined
+      ) {
+        const weightChangeVsPrevKg =
+          weekMetrics.avgWeightKg - prevWeekMetrics.avgWeightKg;
+        trendMetric.weightChangeVsPrevKg = parseFloat(
+          weightChangeVsPrevKg.toFixed(2)
+        );
+      }
+    }
+    trendMetrics.push(trendMetric);
+  }
+
+  return trendMetrics;
 }
 
 const total = (numbers: number[]): number => {
