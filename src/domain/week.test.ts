@@ -154,4 +154,26 @@ describe("computeWeekMetrics", () => {
 
     expect(metrics?.avgProteinPerKg).toBeUndefined();
   });
+
+  it("handles weeks with only a single logged day", () => {
+    const week = makeEmptyWeek({
+      days: {
+        mon: { weightKg: 78, calories: 2600, proteinG: 150 },
+        tue: {},
+        wed: {},
+        thu: {},
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+    });
+
+    const metrics = computeWeekMetrics(week)!;
+
+    expect(metrics.avgWeightKg).toBe(78);
+    expect(metrics.minWeightKg).toBe(78);
+    expect(metrics.maxWeightKg).toBe(78);
+    expect(metrics.avgCalories).toBe(2600);
+    expect(metrics.avgProteinG).toBe(150);
+  });
 });
