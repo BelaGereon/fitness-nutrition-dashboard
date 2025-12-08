@@ -75,14 +75,18 @@ export function computeWeekMetrics(week: WeekEntry): WeekMetrics | undefined {
   return weekMetrics;
 }
 
-const total = (numbers: number[]): number => {
-  if (numbers.length === 0) return 0;
+const total = (numbers: number[]): number | undefined => {
+  if (numbers.length === 0) return undefined;
   return numbers.reduce((sum, n) => sum + n, 0);
 };
 
 const avg = (numbers: number[]): number | undefined => {
   if (numbers.length === 0) return undefined;
-  return total(numbers) / numbers.length;
+
+  const sum = total(numbers);
+
+  if (sum === undefined) return undefined;
+  return sum / numbers.length;
 };
 
 const gatherDataFromWeekDays = (
