@@ -1,6 +1,7 @@
 import { computeWeekMetrics, type WeekEntry, type WeekMetrics } from "./week";
 
 export interface WeekTrendMetrics extends WeekMetrics {
+  id: string;
   weekOf: string;
   weightChangeVsPrevKg?: number;
   weightChangeVsPrevPercent?: number;
@@ -18,6 +19,7 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
     const metrics = computeWeekMetrics(week);
 
     const trendMetric: WeekTrendMetrics = {
+      id: week.id,
       weekOf: week.weekOf,
       ...(metrics ?? {}),
     };
