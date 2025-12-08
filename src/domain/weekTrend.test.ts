@@ -57,4 +57,34 @@ describe("computeTrendMetrics", () => {
     expect(trends[1].weightChangeVsPrevPercent).toBeCloseTo(-2.5);
     expect(trends[2].weightChangeVsPrevPercent).toBeCloseTo(1.28, 2);
   });
+
+  it("handles weeks with no metric data without throwing", () => {
+    const w1: WeekEntry = {
+      id: "w1",
+      weekOf: "2025-11-17",
+      days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
+    };
+    const w2 = makeWeekWithAvgWeight("2025-11-24", 78);
+
+    const trends = computeTrendMetrics([w1, w2]);
+
+    expect(trends[0].avgWeightKg).toBeUndefined();
+    expect(trends[1].weightChangeVsPrevKg).toBeUndefined();
+  });
+
+  it("skips weeks without avgWeight when computing deltas", () => {
+    const week1 = makeWeekWithAvgWeight("2025-11-17", 80);
+    const weekMiss = {
+      id: "w-miss",
+      weekOf: "2025-11-24",
+      days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
+    };
+    const week3 = makeWeekWithAvgWeight("2025-12-01", 79);
+
+    const trends = computeTrendMetrics([week1, weekMiss, week3]);
+
+    expect(trends[0].weightChangeVsPrevKg).toBeUndefined();
+    expect(trends[1].weightChangeVsPrevKg).toBeUndefined();
+    expect(trends[2].weightChangeVsPrevKg).toBe(-1); // or -1.00 depending on rounding
+  });
 });

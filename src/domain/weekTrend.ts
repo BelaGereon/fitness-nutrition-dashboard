@@ -10,67 +10,32 @@ export function computeTrendMetrics(weeks: WeekEntry[]): WeekTrendMetrics[] {
   const sortedWeeks = [...weeks].sort((a, b) =>
     a.weekOf.localeCompare(b.weekOf)
   );
-  const trendMetrics: WeekTrendMetrics[] = [];
+  const result: WeekTrendMetrics[] = [];
 
-  for (let i = 0; i < sortedWeeks.length; i++) {
-    const hasPrevWeek = i > 0;
-    const week = sortedWeeks[i];
-    const weekMetrics = computeWeekMetrics(week);
+  let prevAvgWeight: number | undefined = undefined;
+
+  for (const week of sortedWeeks) {
+    const metrics = computeWeekMetrics(week);
 
     const trendMetric: WeekTrendMetrics = {
       weekOf: week.weekOf,
-      ...weekMetrics,
+      ...(metrics ?? {}),
     };
 
-    if (hasPrevWeek) {
-      const prevWeekMetrics = trendMetrics[i - 1];
-      const weightDiffKg = calcWeightChangeVsPrevKg(
-        weekMetrics,
-        prevWeekMetrics
-      );
-      const weightDiffPerc = calcWeightChangeVsPrevPercent(
-        weekMetrics,
-        prevWeekMetrics
-      );
+    if (metrics?.avgWeightKg !== undefined && prevAvgWeight !== undefined) {
+      const weightDiffKg = metrics.avgWeightKg - prevAvgWeight;
+      const weightDiffPerc =
+        prevAvgWeight === 0 ? undefined : (weightDiffKg / prevAvgWeight) * 100;
 
-      trendMetric.weightChangeVsPrevKg =
-        weightDiffKg !== undefined
-          ? parseFloat(weightDiffKg.toFixed(2))
-          : undefined;
-      trendMetric.weightChangeVsPrevPercent =
-        weightDiffPerc !== undefined
-          ? parseFloat(weightDiffPerc.toFixed(2))
-          : undefined;
+      trendMetric.weightChangeVsPrevKg = weightDiffKg;
+      trendMetric.weightChangeVsPrevPercent = weightDiffPerc;
     }
-    trendMetrics.push(trendMetric);
+
+    if (metrics?.avgWeightKg !== undefined) {
+      prevAvgWeight = metrics.avgWeightKg;
+    }
+
+    result.push(trendMetric);
   }
-  return trendMetrics;
+  return result;
 }
-
-const calcWeightChangeVsPrevKg = (
-  weekMetrics: WeekMetrics | undefined,
-  prevWeekMetrics: WeekMetrics | undefined
-): number | undefined => {
-  if (
-    weekMetrics?.avgWeightKg !== undefined &&
-    prevWeekMetrics?.avgWeightKg !== undefined
-  ) {
-    return weekMetrics.avgWeightKg - prevWeekMetrics.avgWeightKg;
-  }
-  return undefined;
-};
-
-const calcWeightChangeVsPrevPercent = (
-  weekMetrics: WeekMetrics | undefined,
-  prevWeekMetrics: WeekMetrics | undefined
-): number | undefined => {
-  if (
-    weekMetrics?.avgWeightKg !== undefined &&
-    prevWeekMetrics?.avgWeightKg !== undefined &&
-    prevWeekMetrics.avgWeightKg !== 0
-  ) {
-    const weightDiffKg = weekMetrics.avgWeightKg - prevWeekMetrics.avgWeightKg;
-    return (weightDiffKg / prevWeekMetrics.avgWeightKg) * 100;
-  }
-  return undefined;
-};
