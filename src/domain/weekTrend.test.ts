@@ -47,4 +47,13 @@ describe("computeTrendMetrics", () => {
     expect(trends[1].weightChangeVsPrevKg).toEqual(-2);
     expect(trends[2].weightChangeVsPrevKg).toEqual(1);
   });
+
+  it("computes weight change vs previous week in percent", () => {
+    const weeks = [week1, week2, week3];
+
+    const trends = computeTrendMetrics(weeks);
+
+    expect(trends[1].weightChangeVsPrevPercent).toBeCloseTo(-2.5);
+    expect(trends[2].weightChangeVsPrevPercent).toBeCloseTo(1.28, 2);
+  });
 });
