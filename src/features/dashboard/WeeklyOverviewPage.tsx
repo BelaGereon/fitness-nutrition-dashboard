@@ -1,42 +1,25 @@
+// src/features/dashboard/WeeklyOverviewPage.tsx
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
+import { WeekCard } from "./WeekCard";
 
 export function WeeklyOverviewPage() {
   const trend = computeTrendMetrics(sampleWeeks);
+  const weeksById = new Map(sampleWeeks.map((w) => [w.id, w]));
+
   return (
     <main>
       <h1>Weekly Fitness Overview</h1>
 
       <ul>
-        {trend.map((week) => (
-          <li key={week.id}>
-            <h2>Week of {week.weekOf}</h2>
-            <div>
-              <div> Avg weight: {week.avgWeightKg?.toFixed(1)} kg</div>
-              <div>
-                Min / Max: {week.minWeightKg?.toFixed(1)} kg /{" "}
-                {week.maxWeightKg?.toFixed(1)} kg
-              </div>
-              <div>Avg calories: {week.avgCalories?.toFixed(0)} kcal</div>
-              <div>Avg protein: {week.avgProteinG?.toFixed(0)} g</div>
-              <div>
-                Avg protein per kg: {week.avgProteinPerKg?.toFixed(2)} g/kg
-              </div>
-              <div>
-                Avg steps:{" "}
-                {sampleWeeks.find((w) => w.id === week.id)?.avgStepsPerDay}
-              </div>
-              <div>
-                Δ weight vs prev:{" "}
-                {week.weightChangeVsPrevKg != null
-                  ? `${week.weightChangeVsPrevKg.toFixed(
-                      1
-                    )} kg (${week.weightChangeVsPrevPercent?.toFixed(1)}%)`
-                  : "n/a"}
-              </div>
-            </div>
-          </li>
-        ))}
+        {trend.map((week) => {
+          const base = weeksById.get(week.id);
+          if (!base) {
+            return null;
+          }
+
+          return <WeekCard key={week.id} trend={week} base={base} />;
+        })}
       </ul>
     </main>
   );
