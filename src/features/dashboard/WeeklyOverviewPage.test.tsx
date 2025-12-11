@@ -49,5 +49,13 @@ describe("WeeklyOverviewPage", () => {
     expect(secondWeekAvgCalories).toBeInTheDocument();
   });
 
-  it.todo("renders no delta for a week with no previous avg weight");
+  it("renders no delta for a week with no previous avg weight", () => {
+    const firstWeekDelta = screen.getByText("Δ weight vs prev: n/a");
+    expect(firstWeekDelta).toBeInTheDocument();
+  });
+
+  it("renders correct delta week with previous avg weight", () => {
+    const secondWeekDelta = screen.getByText("Δ weight vs prev: 0.3 kg (0.4%)");
+    expect(secondWeekDelta).toBeInTheDocument();
+  });
 });
