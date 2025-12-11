@@ -12,11 +12,10 @@ export function WeeklyOverviewPage() {
           <li key={week.id}>
             <h2>Week of {week.weekOf}</h2>
             <div>
-              <div> Avg weight: {week.avgWeightKg?.toFixed(1)}kg</div>
+              <div> Avg weight: {week.avgWeightKg?.toFixed(1)} kg</div>
               <div>
-                {" "}
-                Min / Max: {week.minWeightKg?.toFixed(1)}kg /{" "}
-                {week.maxWeightKg?.toFixed(1)}kg
+                Min / Max: {week.minWeightKg?.toFixed(1)} kg /{" "}
+                {week.maxWeightKg?.toFixed(1)} kg
               </div>
               <div>Avg calories: {week.avgCalories?.toFixed(0)} kcal</div>
               <div>Avg protein: {week.avgProteinG?.toFixed(0)} g</div>
@@ -29,7 +28,7 @@ export function WeeklyOverviewPage() {
               </div>
               <div>
                 Δ weight vs prev:{" "}
-                {week.weightChangeVsPrevKg
+                {week.weightChangeVsPrevKg != null
                   ? `${week.weightChangeVsPrevKg.toFixed(
                       1
                     )} kg (${week.weightChangeVsPrevPercent?.toFixed(1)}%)`

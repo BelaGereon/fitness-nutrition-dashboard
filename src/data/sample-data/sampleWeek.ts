@@ -1,4 +1,3 @@
-// src/sample-data/sampleWeeks.ts
 import type { WeekEntry } from "../../domain/week";
 
 export const sampleWeeks: WeekEntry[] = [
