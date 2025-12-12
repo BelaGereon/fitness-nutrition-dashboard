@@ -25,7 +25,9 @@ export function WeekCard({ trend, base }: WeekCardProps) {
 
   return (
     <li data-testid={`week-card-${id}`}>
-      <h2>Week of {weekOf}</h2>
+      <h2>
+        <button>Week of {weekOf}</button>
+      </h2>
       <div>
         <div>Avg weight: {avgWeightKg?.toFixed(1)} kg</div>
         <div>
