@@ -1,5 +1,5 @@
 // src/features/dashboard/WeekCard.test.tsx
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { WeekCard } from "./WeekCard";
 import type { WeekEntry } from "../../domain/week";
@@ -36,8 +36,20 @@ describe("WeekCard", () => {
     weightChangeVsPrevPercent: 0.4,
   };
 
-  it("renders trend and base metrics for a week", () => {
+  it("renders the week title as an accessible button so the card can be interacted with", () => {
     render(<WeekCard trend={trend} base={base} />);
+
+    expect(
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+    ).toBeInTheDocument();
+  });
+
+  it("triggers selection when the week title button is clicked", () => {
+    render(<WeekCard trend={trend} base={base} />);
+
+    act(() => {
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` }).click();
+    });
 
     expect(screen.getByText("Week of 2025-12-01")).toBeInTheDocument();
     expect(screen.getByText("Avg weight: 78.4 kg")).toBeInTheDocument();
@@ -52,14 +64,6 @@ describe("WeekCard", () => {
     expect(screen.getByText("Avg steps: 9000")).toBeInTheDocument();
     expect(
       screen.getByText("Δ weight vs prev: 0.3 kg (0.4%)")
-    ).toBeInTheDocument();
-  });
-
-  it("renders the week title as an accessible button so the card can be interacted with", () => {
-    render(<WeekCard trend={trend} base={base} />);
-
-    expect(
-      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
     ).toBeInTheDocument();
   });
 

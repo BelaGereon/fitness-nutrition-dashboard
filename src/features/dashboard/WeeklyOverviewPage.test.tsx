@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
@@ -26,15 +26,26 @@ describe("WeeklyOverviewPage", () => {
   });
 
   it("renders no delta for a week with no previous avg weight", () => {
+    act(() => {
+      screen
+        .getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+        .click();
+    });
+
     const firstWeekDelta = screen.getByText(/Δ weight vs prev:\s*n\/a/i);
     expect(firstWeekDelta).toBeInTheDocument();
   });
 
   it("renders correct delta week with previous avg weight", () => {
-    const second = secondTrendWeek;
-    const expected = `Δ weight vs prev: ${second.weightChangeVsPrevKg?.toFixed(
+    act(() => {
+      screen
+        .getByRole("button", { name: `Week of ${secondTrendWeek.weekOf}` })
+        .click();
+    });
+
+    const expected = `Δ weight vs prev: ${secondTrendWeek.weightChangeVsPrevKg?.toFixed(
       1
-    )} kg (${second.weightChangeVsPrevPercent?.toFixed(1)}%)`;
+    )} kg (${secondTrendWeek.weightChangeVsPrevPercent?.toFixed(1)}%)`;
     const secondWeekDelta = screen.getByText(expected);
     expect(secondWeekDelta).toBeInTheDocument();
   });
@@ -56,6 +67,10 @@ const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
       }
 
       card = li;
+
+      act(() => {
+        screen.getByRole("button", { name: `Week of ${week.weekOf}` }).click();
+      });
     });
 
     it("renders the avg weight", () => {
