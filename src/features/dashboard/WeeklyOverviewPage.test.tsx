@@ -50,6 +50,43 @@ describe("WeeklyOverviewPage", () => {
     const secondWeekDelta = screen.getByText(expected);
     expect(secondWeekDelta).toBeInTheDocument();
   });
+
+  it("only allows one week card to be open at a time", async () => {
+    const user = userEvent.setup();
+    const firstWeekButton = screen.getByRole("button", {
+      name: `Week of ${firstTrendWeek.weekOf}`,
+    });
+    const secondWeekButton = screen.getByRole("button", {
+      name: `Week of ${secondTrendWeek.weekOf}`,
+    });
+
+    // Open first week
+    await user.click(firstWeekButton);
+    expect(
+      screen.getByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+
+    // Open second week
+    await user.click(secondWeekButton);
+    expect(
+      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).toBeInTheDocument();
+
+    // Close second week
+    await user.click(secondWeekButton);
+    expect(
+      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+  });
 });
 
 const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
