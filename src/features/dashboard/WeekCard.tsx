@@ -1,14 +1,14 @@
-// src/features/dashboard/WeekCard.tsx
-import React from "react";
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 
 type WeekCardProps = {
   trend: WeekTrendMetrics;
   base: WeekEntry;
+  isOpen: boolean;
+  onToggle: () => void;
 };
 
-export function WeekCard({ trend, base }: WeekCardProps) {
+export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
   const {
     weekOf,
     avgWeightKg,
@@ -22,18 +22,23 @@ export function WeekCard({ trend, base }: WeekCardProps) {
     id,
   } = trend;
 
-  const [isOpen, setIsOpen] = React.useState(false);
-  const toggle = () => setIsOpen((isOpen: boolean) => !isOpen);
+  const detailsId = `week-card-${id}-details`;
 
   return (
     <li data-testid={`week-card-${id}`}>
       <h2>
-        <button type="button" onClick={toggle}>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-controls={detailsId}
+        >
           Week of {weekOf}
         </button>
       </h2>
+
       {isOpen && (
-        <div data-testid={`week-card-${id}-details`}>
+        <div id={detailsId} data-testid={detailsId}>
           <div>Avg weight: {avgWeightKg?.toFixed(1)} kg</div>
           <div>
             Min / Max: {minWeightKg?.toFixed(1)} kg / {maxWeightKg?.toFixed(1)}{" "}

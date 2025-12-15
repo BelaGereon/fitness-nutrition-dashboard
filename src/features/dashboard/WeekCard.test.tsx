@@ -1,7 +1,6 @@
-// src/features/dashboard/WeekCard.test.tsx
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { WeekCard } from "./WeekCard";
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
@@ -38,33 +37,40 @@ describe("WeekCard", () => {
   };
 
   it("renders the week title as an accessible button so the card can be interacted with", () => {
-    render(<WeekCard trend={trend} base={base} />);
+    render(
+      <WeekCard trend={trend} base={base} isOpen={false} onToggle={vi.fn()} />
+    );
 
     expect(
       screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
     ).toBeInTheDocument();
   });
 
-  it("toggles details when the week title button is clicked", async () => {
+  it("calls onToggle when the week title button is clicked", async () => {
     const user = userEvent.setup();
-    render(<WeekCard trend={trend} base={base} />);
+    const onToggle = vi.fn();
 
-    expect(
-      screen.queryByTestId(`week-card-${trend.id}-details`)
-    ).not.toBeInTheDocument();
+    render(
+      <WeekCard trend={trend} base={base} isOpen={false} onToggle={onToggle} />
+    );
 
     await user.click(
       screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
     );
-    expect(
-      screen.getByTestId(`week-card-${trend.id}-details`)
-    ).toBeInTheDocument();
+    expect(onToggle).toHaveBeenCalledTimes(1);
+  });
 
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+  it("renders details only when isOpen=true", () => {
+    const detailsTestId = `week-card-${trend.id}-details`;
+
+    const { rerender } = render(
+      <WeekCard trend={trend} base={base} isOpen={false} onToggle={() => {}} />
     );
-    expect(
-      screen.queryByTestId(`week-card-${trend.id}-details`)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId(detailsTestId)).not.toBeInTheDocument();
+
+    rerender(
+      <WeekCard trend={trend} base={base} isOpen={true} onToggle={() => {}} />
+    );
+    expect(screen.getByTestId(detailsTestId)).toBeInTheDocument();
   });
 });
