@@ -67,7 +67,4 @@ describe("WeekCard", () => {
       screen.queryByTestId(`week-card-${trend.id}-details`)
     ).not.toBeInTheDocument();
   });
-
-  it.todo("renders details when selected=true");
-  it.todo("hides details when selected=false");
 });

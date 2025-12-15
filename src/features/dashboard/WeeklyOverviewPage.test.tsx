@@ -1,4 +1,5 @@
 import { act, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
@@ -54,8 +55,9 @@ describe("WeeklyOverviewPage", () => {
 const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
   describe(`Week of ${week.weekOf}`, () => {
     let card: HTMLElement;
+    const user = userEvent.setup();
 
-    beforeEach(() => {
+    beforeEach(async () => {
       const heading = screen.getByRole("heading", {
         level: 2,
         name: `Week of ${week.weekOf}`,
@@ -68,9 +70,9 @@ const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
 
       card = li;
 
-      act(() => {
-        screen.getByRole("button", { name: `Week of ${week.weekOf}` }).click();
-      });
+      await user.click(
+        screen.getByRole("button", { name: `Week of ${week.weekOf}` })
+      );
     });
 
     it("renders the avg weight", () => {
