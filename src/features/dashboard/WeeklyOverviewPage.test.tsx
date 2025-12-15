@@ -32,7 +32,7 @@ describe("WeeklyOverviewPage", () => {
       screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
     );
 
-    const firstWeekDelta = screen.getByText(/Δ weight vs prev:\s*n\/a/i);
+    const firstWeekDelta = screen.getByText("Δ weight vs prev: n/a");
     expect(firstWeekDelta).toBeInTheDocument();
   });
 

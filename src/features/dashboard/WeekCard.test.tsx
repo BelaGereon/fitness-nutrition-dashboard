@@ -129,7 +129,7 @@ describe("WeekCard", () => {
     ).toBeInTheDocument();
     expect(withingDetails.getByText("Avg steps: n/a")).toBeInTheDocument();
     expect(
-      withingDetails.getByText("Δ weight vs prev: n/a (n/a)")
+      withingDetails.getByText("Δ weight vs prev: n/a")
     ).toBeInTheDocument();
   });
 });
