@@ -116,20 +116,18 @@ describe("WeekCard", () => {
     const details = screen.getByTestId(
       `week-card-${incompleteTrend.id}-details`
     );
-    const withingDetails = within(details);
+    const withinDetails = within(details);
 
-    expect(withingDetails.getByText("Avg weight: n/a")).toBeInTheDocument();
+    expect(withinDetails.getByText("Avg weight: n/a")).toBeInTheDocument();
+    expect(withinDetails.getByText("Min / Max: n/a / n/a")).toBeInTheDocument();
+    expect(withinDetails.getByText("Avg calories: n/a")).toBeInTheDocument();
+    expect(withinDetails.getByText("Avg protein: n/a")).toBeInTheDocument();
     expect(
-      withingDetails.getByText("Min / Max: n/a / n/a")
+      withinDetails.getByText("Avg protein per kg: n/a")
     ).toBeInTheDocument();
-    expect(withingDetails.getByText("Avg calories: n/a")).toBeInTheDocument();
-    expect(withingDetails.getByText("Avg protein: n/a")).toBeInTheDocument();
+    expect(withinDetails.getByText("Avg steps: n/a")).toBeInTheDocument();
     expect(
-      withingDetails.getByText("Avg protein per kg: n/a")
-    ).toBeInTheDocument();
-    expect(withingDetails.getByText("Avg steps: n/a")).toBeInTheDocument();
-    expect(
-      withingDetails.getByText("Δ weight vs prev: n/a")
+      withinDetails.getByText("Δ weight vs prev: n/a")
     ).toBeInTheDocument();
   });
 });
