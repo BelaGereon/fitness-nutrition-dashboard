@@ -44,7 +44,7 @@ describe("WeeklyOverviewPage", () => {
 
     const expected = `Δ weight vs prev: ${secondTrendWeek.weightChangeVsPrevKg?.toFixed(
       1
-    )} kg (${secondTrendWeek.weightChangeVsPrevPercent?.toFixed(1)} %)`;
+    )} kg (${secondTrendWeek.weightChangeVsPrevPercent?.toFixed(1)}%)`;
 
     const secondWeekDelta = screen.getByText(expected);
 
@@ -130,21 +130,21 @@ const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
 
     it("renders avg calories", () => {
       const avgCalories = within(card).getByText(
-        `Avg calories: ${week.avgCalories?.toFixed(1)} kcal`
+        `Avg calories: ${week.avgCalories?.toFixed(0)} kcal`
       );
       expect(avgCalories).toBeInTheDocument();
     });
 
     it("renders avg protein", () => {
       const avgProtein = within(card).getByText(
-        `Avg protein: ${week.avgProteinG?.toFixed(1)} g`
+        `Avg protein: ${week.avgProteinG?.toFixed(0)} g`
       );
       expect(avgProtein).toBeInTheDocument();
     });
 
     it("renders avg protein per kg", () => {
       const avgProteinPerKg = within(card).getByText(
-        `Avg protein per kg: ${week.avgProteinPerKg?.toFixed(1)} g/kg`
+        `Avg protein per kg: ${week.avgProteinPerKg?.toFixed(2)} g/kg`
       );
       expect(avgProteinPerKg).toBeInTheDocument();
     });

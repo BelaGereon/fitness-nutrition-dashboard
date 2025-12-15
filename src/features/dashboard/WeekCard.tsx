@@ -24,8 +24,17 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
 
   const detailsId = `week-card-${id}-details`;
 
-  const formatData = (value: number | undefined, unit: string) => {
-    return value !== undefined ? `${value.toFixed(1)} ${unit}` : "n/a";
+  const formatData = (
+    value: number | undefined,
+    {
+      decimals,
+      unit,
+      space = true,
+    }: { decimals: number; unit?: string; space?: boolean }
+  ) => {
+    if (value === undefined || Number.isNaN(value)) return "n/a";
+    if (!unit) return value.toFixed(decimals);
+    return `${value.toFixed(decimals)}${space ? " " : ""}${unit}`;
   };
 
   return (
@@ -43,18 +52,34 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
 
       {isOpen && (
         <div id={detailsId} data-testid={detailsId}>
-          <div>Avg weight: {formatData(avgWeightKg, "kg")}</div>
           <div>
-            Min / Max: {formatData(minWeightKg, "kg")} /{" "}
-            {formatData(maxWeightKg, "kg")}
+            Avg weight: {formatData(avgWeightKg, { decimals: 1, unit: "kg" })}
           </div>
-          <div>Avg calories: {formatData(avgCalories, "kcal")}</div>
-          <div>Avg protein: {formatData(avgProteinG, "g")}</div>
-          <div>Avg protein per kg: {formatData(avgProteinPerKg, "g/kg")}</div>
+          <div>
+            Min / Max: {formatData(minWeightKg, { decimals: 1, unit: "kg" })} /{" "}
+            {formatData(maxWeightKg, { decimals: 1, unit: "kg" })}
+          </div>
+          <div>
+            Avg calories:{" "}
+            {formatData(avgCalories, { decimals: 0, unit: "kcal" })}
+          </div>
+          <div>
+            Avg protein: {formatData(avgProteinG, { decimals: 0, unit: "g" })}
+          </div>
+          <div>
+            Avg protein per kg:{" "}
+            {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
+          </div>
           <div>Avg steps: {base.avgStepsPerDay ?? "n/a"}</div>
           <div>
-            Δ weight vs prev: {formatData(weightChangeVsPrevKg, "kg")} (
-            {formatData(weightChangeVsPrevPercent, "%")})
+            Δ weight vs prev:{" "}
+            {formatData(weightChangeVsPrevKg, { decimals: 1, unit: "kg" })} (
+            {formatData(weightChangeVsPrevPercent, {
+              decimals: 1,
+              unit: "%",
+              space: false,
+            })}
+            )
           </div>
         </div>
       )}
