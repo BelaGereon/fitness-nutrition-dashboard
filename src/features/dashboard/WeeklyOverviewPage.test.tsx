@@ -26,28 +26,28 @@ describe("WeeklyOverviewPage", () => {
     testRenderingOfWeekData(secondTrendWeek);
   });
 
-  it("renders no delta for a week with no previous avg weight", () => {
-    act(() => {
-      screen
-        .getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
-        .click();
-    });
+  it("renders no delta for a week with no previous avg weight", async () => {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+    );
 
     const firstWeekDelta = screen.getByText(/Δ weight vs prev:\s*n\/a/i);
     expect(firstWeekDelta).toBeInTheDocument();
   });
 
-  it("renders correct delta week with previous avg weight", () => {
-    act(() => {
-      screen
-        .getByRole("button", { name: `Week of ${secondTrendWeek.weekOf}` })
-        .click();
-    });
+  it("renders correct delta week with previous avg weight", async () => {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${secondTrendWeek.weekOf}` })
+    );
 
     const expected = `Δ weight vs prev: ${secondTrendWeek.weightChangeVsPrevKg?.toFixed(
       1
     )} kg (${secondTrendWeek.weightChangeVsPrevPercent?.toFixed(1)}%)`;
+
     const secondWeekDelta = screen.getByText(expected);
+
     expect(secondWeekDelta).toBeInTheDocument();
   });
 
