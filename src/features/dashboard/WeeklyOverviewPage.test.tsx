@@ -119,10 +119,10 @@ describe("WeeklyOverviewPage", () => {
   });
 
   const extractFirstNumber = (text: string) => {
-    const match = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
+    const numbersInText = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
 
-    if (!match) throw new Error(`No number found in: ${text}`);
+    if (!numbersInText) throw new Error(`No number found in: ${text}`);
 
-    return Number(match[0]);
+    return Number(numbersInText[0]);
   };
 });
