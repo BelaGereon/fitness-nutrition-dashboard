@@ -1,5 +1,6 @@
 // src/features/dashboard/WeekCard.test.tsx
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect } from "vitest";
 import { WeekCard } from "./WeekCard";
 import type { WeekEntry } from "../../domain/week";
@@ -44,27 +45,27 @@ describe("WeekCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("triggers selection when the week title button is clicked", () => {
+  it("toggles details when the week title button is clicked", async () => {
+    const user = userEvent.setup();
     render(<WeekCard trend={trend} base={base} />);
 
-    act(() => {
-      screen.getByRole("button", { name: `Week of ${trend.weekOf}` }).click();
-    });
+    expect(
+      screen.queryByTestId(`week-card-${trend.id}-details`)
+    ).not.toBeInTheDocument();
 
-    expect(screen.getByText("Week of 2025-12-01")).toBeInTheDocument();
-    expect(screen.getByText("Avg weight: 78.4 kg")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+    );
     expect(
-      screen.getByText("Min / Max: 78.2 kg / 78.5 kg")
+      screen.getByTestId(`week-card-${trend.id}-details`)
     ).toBeInTheDocument();
-    expect(screen.getByText("Avg calories: 2750 kcal")).toBeInTheDocument();
-    expect(screen.getByText("Avg protein: 155 g")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+    );
     expect(
-      screen.getByText("Avg protein per kg: 1.98 g/kg")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Avg steps: 9000")).toBeInTheDocument();
-    expect(
-      screen.getByText("Δ weight vs prev: 0.3 kg (0.4%)")
-    ).toBeInTheDocument();
+      screen.queryByTestId(`week-card-${trend.id}-details`)
+    ).not.toBeInTheDocument();
   });
 
   it.todo("renders details when selected=true");

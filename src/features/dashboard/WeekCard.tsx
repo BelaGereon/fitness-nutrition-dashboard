@@ -33,7 +33,7 @@ export function WeekCard({ trend, base }: WeekCardProps) {
         </button>
       </h2>
       {isOpen && (
-        <div>
+        <div data-testid={`week-card-${id}-details`}>
           <div>Avg weight: {avgWeightKg?.toFixed(1)} kg</div>
           <div>
             Min / Max: {minWeightKg?.toFixed(1)} kg / {maxWeightKg?.toFixed(1)}{" "}
