@@ -24,6 +24,10 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
 
   const detailsId = `week-card-${id}-details`;
 
+  const formatData = (value: number | undefined, unit: string) => {
+    return value !== undefined ? `${value.toFixed(1)} ${unit}` : "n/a";
+  };
+
   return (
     <li data-testid={`week-card-${id}`}>
       <h2>
@@ -39,22 +43,18 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
 
       {isOpen && (
         <div id={detailsId} data-testid={detailsId}>
-          <div>Avg weight: {avgWeightKg?.toFixed(1)} kg</div>
+          <div>Avg weight: {formatData(avgWeightKg, "kg")}</div>
           <div>
-            Min / Max: {minWeightKg?.toFixed(1)} kg / {maxWeightKg?.toFixed(1)}{" "}
-            kg
+            Min / Max: {formatData(minWeightKg, "kg")} /{" "}
+            {formatData(maxWeightKg, "kg")}
           </div>
-          <div>Avg calories: {avgCalories?.toFixed(0)} kcal</div>
-          <div>Avg protein: {avgProteinG?.toFixed(0)} g</div>
-          <div>Avg protein per kg: {avgProteinPerKg?.toFixed(2)} g/kg</div>
-          <div>Avg steps: {base.avgStepsPerDay}</div>
+          <div>Avg calories: {formatData(avgCalories, "kcal")}</div>
+          <div>Avg protein: {formatData(avgProteinG, "g")}</div>
+          <div>Avg protein per kg: {formatData(avgProteinPerKg, "g/kg")}</div>
+          <div>Avg steps: {base.avgStepsPerDay ?? "n/a"}</div>
           <div>
-            Δ weight vs prev:{" "}
-            {weightChangeVsPrevKg != null
-              ? `${weightChangeVsPrevKg.toFixed(
-                  1
-                )} kg (${weightChangeVsPrevPercent?.toFixed(1)}%)`
-              : "n/a"}
+            Δ weight vs prev: {formatData(weightChangeVsPrevKg, "kg")} (
+            {formatData(weightChangeVsPrevPercent, "%")})
           </div>
         </div>
       )}

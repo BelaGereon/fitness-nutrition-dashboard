@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { WeekCard } from "./WeekCard";
@@ -72,5 +72,64 @@ describe("WeekCard", () => {
       <WeekCard trend={trend} base={base} isOpen={true} onToggle={() => {}} />
     );
     expect(screen.getByTestId(detailsTestId)).toBeInTheDocument();
+  });
+
+  it("renders missing data as 'n/a'", async () => {
+    const incompleteBase: WeekEntry = {
+      id: "incomplete-week",
+      weekOf: "2025-12-08",
+      avgStepsPerDay: undefined,
+      days: {
+        mon: {},
+        tue: {},
+        wed: {},
+        thu: {},
+        fri: {},
+        sat: {},
+        sun: {},
+      },
+      totalSets: 30,
+      trainingSessionsDescription: "1x Cardio",
+    };
+    const incompleteTrend: WeekTrendMetrics = {
+      id: "incomplete-week",
+      weekOf: "2025-12-08",
+      avgWeightKg: undefined,
+      minWeightKg: undefined,
+      maxWeightKg: undefined,
+      avgCalories: undefined,
+      avgProteinG: undefined,
+      avgProteinPerKg: undefined,
+      weightChangeVsPrevKg: undefined,
+      weightChangeVsPrevPercent: undefined,
+    };
+
+    render(
+      <WeekCard
+        trend={incompleteTrend}
+        base={incompleteBase}
+        isOpen={true}
+        onToggle={() => {}}
+      />
+    );
+
+    const details = screen.getByTestId(
+      `week-card-${incompleteTrend.id}-details`
+    );
+    const withingDetails = within(details);
+
+    expect(withingDetails.getByText("Avg weight: n/a")).toBeInTheDocument();
+    expect(
+      withingDetails.getByText("Min / Max: n/a / n/a")
+    ).toBeInTheDocument();
+    expect(withingDetails.getByText("Avg calories: n/a")).toBeInTheDocument();
+    expect(withingDetails.getByText("Avg protein: n/a")).toBeInTheDocument();
+    expect(
+      withingDetails.getByText("Avg protein per kg: n/a")
+    ).toBeInTheDocument();
+    expect(withingDetails.getByText("Avg steps: n/a")).toBeInTheDocument();
+    expect(
+      withingDetails.getByText("Δ weight vs prev: n/a (n/a)")
+    ).toBeInTheDocument();
   });
 });
