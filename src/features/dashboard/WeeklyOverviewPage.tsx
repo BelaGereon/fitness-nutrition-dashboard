@@ -4,8 +4,9 @@ import { computeTrendMetrics } from "../../domain/weekTrend";
 import { WeekCard } from "./WeekCard";
 
 export function WeeklyOverviewPage() {
-  const trend = computeTrendMetrics(sampleWeeks);
-  const weeksById = new Map(sampleWeeks.map((week) => [week.id, week]));
+  const [weeks, setWeeks] = React.useState(sampleWeeks);
+  const trend = computeTrendMetrics(weeks);
+  const weeksById = new Map(weeks.map((week) => [week.id, week]));
 
   const [openWeekId, setOpenWeekId] = React.useState<string | null>(null);
 
