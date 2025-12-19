@@ -14,7 +14,7 @@ export function WeeklyOverviewPage() {
     setOpenWeekId((prev) => (prev === id ? null : id));
   };
 
-  const updateWeek = (id: string, patch: Partial<typeof Week>) => {
+  const updateWeek = (id: string, patch: Partial<WeekEntry>) => {
     setWeeks((weeks) =>
       weeks.map((week) => (week.id === id ? { ...week, ...patch } : week))
     );

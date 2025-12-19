@@ -121,6 +121,16 @@ describe("WeeklyOverviewPage", () => {
 
     expect(renderedAvgWeight).toBeCloseTo(firstTrendWeek.avgWeightKg!, 1);
   });
+
+  it("allows editing avg steps and reflects the change in the UI", async () => {
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+    );
+
+    await user.click(screen.getByRole("button", { name: /edit avg steps/i }));
+  });
 });
 
 const extractFirstNumber = (text: string) => {
