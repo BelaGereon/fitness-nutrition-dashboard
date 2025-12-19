@@ -1,5 +1,6 @@
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
+import { formatData } from "./util/format";
 
 type WeekCardProps = {
   trend: WeekTrendMetrics;
@@ -23,19 +24,6 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
   } = trend;
 
   const detailsId = `week-card-${id}-details`;
-
-  const formatData = (
-    value: number | undefined,
-    {
-      decimals,
-      unit,
-      space = true,
-    }: { decimals: number; unit?: string; space?: boolean }
-  ) => {
-    if (value === undefined || Number.isNaN(value)) return "n/a";
-    if (!unit) return value.toFixed(decimals);
-    return `${value.toFixed(decimals)}${space ? " " : ""}${unit}`;
-  };
 
   return (
     <li data-testid={`week-card-${id}`}>
