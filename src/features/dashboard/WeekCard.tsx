@@ -70,7 +70,10 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
             Avg protein per kg:{" "}
             {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
           </div>
-          <div>Avg steps: {base.avgStepsPerDay ?? "n/a"}</div>
+          <div>
+            Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
+          </div>
+
           <div>
             Δ weight vs prev:{" "}
             {weightChangeVsPrevKg !== undefined &&
