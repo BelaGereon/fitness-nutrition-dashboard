@@ -129,7 +129,18 @@ describe("WeeklyOverviewPage", () => {
       screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
     );
 
-    await user.click(screen.getByRole("button", { name: /edit avg steps/i }));
+    await user.click(screen.getByRole("button", { name: /edit steps/i }));
+
+    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
+    await user.clear(input);
+    await user.type(input, "10000");
+
+    await user.click(screen.getByRole("button", { name: /save steps/i }));
+
+    const details = screen.getByTestId(
+      `week-card-${firstTrendWeek.id}-details`
+    );
+    expect(within(details).getByText(/avg steps:/i)).toHaveTextContent("10000");
   });
 });
 

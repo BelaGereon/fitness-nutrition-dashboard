@@ -61,7 +61,6 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
           <div>
             Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
           </div>
-
           <div>
             Δ weight vs prev:{" "}
             {weightChangeVsPrevKg !== undefined &&
