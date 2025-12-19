@@ -14,6 +14,12 @@ export function WeeklyOverviewPage() {
     setOpenWeekId((prev) => (prev === id ? null : id));
   };
 
+  const updateWeek = (id: string, patch: Partial<typeof Week>) => {
+    setWeeks((weeks) =>
+      weeks.map((week) => (week.id === id ? { ...week, ...patch } : week))
+    );
+  };
+
   return (
     <main>
       <h1>Weekly Fitness Overview</h1>
