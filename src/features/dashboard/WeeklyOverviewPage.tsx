@@ -36,6 +36,7 @@ export function WeeklyOverviewPage() {
               base={base}
               isOpen={openWeekId === week.id}
               onToggle={() => toggleWeek(week.id)}
+              onUpdateWeek={(patch) => updateWeek(week.id, patch)}
             />
           );
         })}

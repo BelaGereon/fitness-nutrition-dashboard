@@ -7,9 +7,16 @@ type WeekCardProps = {
   base: WeekEntry;
   isOpen: boolean;
   onToggle: () => void;
+  onUpdateWeek: (patch: Partial<WeekEntry>) => void;
 };
 
-export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
+export function WeekCard({
+  trend,
+  base,
+  isOpen,
+  onToggle,
+  onUpdateWeek,
+}: WeekCardProps) {
   const {
     weekOf,
     avgWeightKg,
