@@ -1,3 +1,4 @@
+import React from "react";
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 import { formatData } from "./util/format";
@@ -31,6 +32,7 @@ export function WeekCard({
   } = trend;
 
   const detailsId = `week-card-${id}-details`;
+  const [editingMode, setEditingMode] = React.useState(false);
 
   return (
     <li data-testid={`week-card-${id}`}>
@@ -67,6 +69,31 @@ export function WeekCard({
           </div>
           <div>
             Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
+            {!editingMode && (
+              <button
+                type="button"
+                onClick={() => setEditingMode((prev) => !prev)}
+              >
+                edit steps
+              </button>
+            )}
+            {editingMode && (
+              <div role="spinbutton" aria-label="Edit average steps per day">
+                <input
+                  type="number"
+                  aria-label="avg steps"
+                  defaultValue={base.avgStepsPerDay ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const parsed = value === "" ? undefined : Number(value);
+                    onUpdateWeek({ avgStepsPerDay: parsed });
+                  }}
+                />
+                <button type="button" onClick={() => setEditingMode(false)}>
+                  save steps
+                </button>
+              </div>
+            )}
           </div>
           <div>
             Δ weight vs prev:{" "}
