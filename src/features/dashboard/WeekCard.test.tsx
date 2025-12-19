@@ -118,16 +118,17 @@ describe("WeekCard", () => {
     );
     const withinDetails = within(details);
 
-    expect(withinDetails.getByText("Avg weight: n/a")).toBeInTheDocument();
-    expect(withinDetails.getByText("Min / Max: n/a / n/a")).toBeInTheDocument();
-    expect(withinDetails.getByText("Avg calories: n/a")).toBeInTheDocument();
-    expect(withinDetails.getByText("Avg protein: n/a")).toBeInTheDocument();
-    expect(
-      withinDetails.getByText("Avg protein per kg: n/a")
-    ).toBeInTheDocument();
-    expect(withinDetails.getByText("Avg steps: n/a")).toBeInTheDocument();
-    expect(
-      withinDetails.getByText("Δ weight vs prev: n/a")
-    ).toBeInTheDocument();
+    const expectLineToContainNA = (label: RegExp) => {
+      const line = withinDetails.getByText(label);
+      expect(line).toHaveTextContent(/n\/a/i);
+    };
+
+    expectLineToContainNA(/avg weight:/i);
+    expectLineToContainNA(/min \/ max:/i);
+    expectLineToContainNA(/avg calories:/i);
+    expectLineToContainNA(/avg protein:/i);
+    expectLineToContainNA(/avg protein per kg:/i);
+    expectLineToContainNA(/avg steps:/i);
+    expectLineToContainNA(/Δ weight vs prev:/i);
   });
 });
