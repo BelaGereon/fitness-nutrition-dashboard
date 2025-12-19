@@ -74,7 +74,7 @@ describe("WeekCard", () => {
     expect(screen.getByTestId(detailsTestId)).toBeInTheDocument();
   });
 
-  it("renders missing data as 'n/a'", async () => {
+  it("renders missing data as 'n/a'", () => {
     const incompleteBase: WeekEntry = {
       id: "incomplete-week",
       weekOf: "2025-12-08",
