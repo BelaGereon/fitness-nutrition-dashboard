@@ -41,4 +41,22 @@ export const sampleWeeks: WeekEntry[] = [
     notes:
       "Second Week of the meso, tried to got to 2RIR on all exercises. Got a flu shot on Friday and took the rest of the week off from training.",
   },
+  {
+    id: "2025-12-08",
+    weekOf: "2025-12-08",
+    avgStepsPerDay: 9472,
+    days: {
+      mon: { weightKg: 78.9, calories: 2733, proteinG: 160 },
+      tue: { weightKg: 79.1, calories: 2387, proteinG: 91 },
+      wed: { weightKg: 79.0, calories: 2947, proteinG: 186 },
+      thu: { weightKg: 78.9, calories: 2880, proteinG: 149 },
+      fri: { weightKg: 79.0, calories: 2724, proteinG: 102 },
+      sat: { weightKg: 79.0, calories: 2806, proteinG: 129 },
+      sun: { weightKg: 79.0, calories: 2726, proteinG: 193 },
+    },
+    trainingSessionsDescription: "3x Full Body",
+    totalSets: 58,
+    totalVolumeKg: 37745.05,
+    notes: "Third week of the meso, went close to failure on most sets.",
+  },
 ];

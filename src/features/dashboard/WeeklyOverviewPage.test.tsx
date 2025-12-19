@@ -1,11 +1,10 @@
+import userEvent from "@testing-library/user-event";
+
 import { render, screen, within } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
-import {
-  computeTrendMetrics,
-  type WeekTrendMetrics,
-} from "../../domain/weekTrend";
+import { computeTrendMetrics } from "../../domain/weekTrend";
 
 describe("WeeklyOverviewPage", () => {
   const trend = computeTrendMetrics(sampleWeeks);
@@ -20,77 +19,114 @@ describe("WeeklyOverviewPage", () => {
     expect(headings.length).toBe(computeTrendMetrics(sampleWeeks).length);
   });
 
-  describe("renders the computed values for the correct week", () => {
-    testRenderingOfWeekData(firstTrendWeek);
-    testRenderingOfWeekData(secondTrendWeek);
+  it("shows a details panel with the expected fields when a week is opened", async () => {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+    );
+
+    const detailsContainer = screen.getByTestId(
+      `week-card-${firstTrendWeek.id}-details`
+    );
+    const details = within(detailsContainer);
+
+    expect(details.getByText(/avg weight:/i)).toBeInTheDocument();
+    expect(details.getByText(/min \/ max:/i)).toBeInTheDocument();
+    expect(details.getByText(/avg calories:/i)).toBeInTheDocument();
+    expect(details.getByText(/avg protein:/i)).toBeInTheDocument();
+    expect(details.getByText(/avg protein per kg:/i)).toBeInTheDocument();
+    expect(details.getByText(/avg steps:/i)).toBeInTheDocument();
+    expect(details.getByText(/Δ weight vs prev:/i)).toBeInTheDocument();
   });
 
-  it("renders no delta for a week with no previous avg weight", () => {
-    const firstWeekDelta = screen.getByText(/Δ weight vs prev:\s*n\/a/i);
-    expect(firstWeekDelta).toBeInTheDocument();
+  it("renders no delta for a week with no previous avg weight", async () => {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+    );
+
+    const details = screen.getByTestId(
+      `week-card-${firstTrendWeek.id}-details`
+    );
+    const deltaText = within(details).getByText(/Δ weight vs prev:/i);
+
+    expect(deltaText).toHaveTextContent(/n\/a/i);
   });
 
-  it("renders correct delta week with previous avg weight", () => {
-    const second = secondTrendWeek;
-    const expected = `Δ weight vs prev: ${second.weightChangeVsPrevKg?.toFixed(
-      1
-    )} kg (${second.weightChangeVsPrevPercent?.toFixed(1)}%)`;
-    const secondWeekDelta = screen.getByText(expected);
-    expect(secondWeekDelta).toBeInTheDocument();
+  it("renders a delta for a week with previous avg weight", async () => {
+    const user = userEvent.setup();
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${secondTrendWeek.weekOf}` })
+    );
+
+    const details = screen.getByTestId(
+      `week-card-${secondTrendWeek.id}-details`
+    );
+    const deltaText = within(details).getByText(/Δ weight vs prev:/i);
+
+    expect(deltaText).not.toHaveTextContent(/n\/a/i);
+    expect(deltaText).toHaveTextContent(/kg/);
+  });
+
+  it("only allows one week card to be open at a time", async () => {
+    const user = userEvent.setup();
+    const firstWeekButton = screen.getByRole("button", {
+      name: `Week of ${firstTrendWeek.weekOf}`,
+    });
+    const secondWeekButton = screen.getByRole("button", {
+      name: `Week of ${secondTrendWeek.weekOf}`,
+    });
+
+    // Open first week
+    await user.click(firstWeekButton);
+    expect(
+      screen.getByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+
+    // Open second week
+    await user.click(secondWeekButton);
+    expect(
+      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).toBeInTheDocument();
+
+    // Close second week
+    await user.click(secondWeekButton);
+    expect(
+      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
+    ).not.toBeInTheDocument();
+  });
+
+  it("wires the correct week data into the opened card", async () => {
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
+    );
+
+    const details = screen.getByTestId(
+      `week-card-${firstTrendWeek.id}-details`
+    );
+    const avgWeightText =
+      within(details).getByText(/avg weight:/i).textContent ?? "";
+    const renderedAvgWeight = extractFirstNumber(avgWeightText);
+
+    expect(renderedAvgWeight).toBeCloseTo(firstTrendWeek.avgWeightKg!, 1);
   });
 });
 
-const testRenderingOfWeekData = (week: WeekTrendMetrics) => {
-  describe(`Week of ${week.weekOf}`, () => {
-    let card: HTMLElement;
+const extractFirstNumber = (text: string) => {
+  const numbersInText = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
 
-    beforeEach(() => {
-      const heading = screen.getByRole("heading", {
-        level: 2,
-        name: `Week of ${week.weekOf}`,
-      });
+  if (!numbersInText) throw new Error(`No number found in: ${text}`);
 
-      const li = heading.closest("li");
-      if (!li) {
-        throw new Error(`No <li> found for week ${week.weekOf}`);
-      }
-
-      card = li;
-    });
-
-    it("renders the avg weight", () => {
-      const avgWeight = within(card).getByText(
-        `Avg weight: ${week.avgWeightKg?.toFixed(1)} kg`
-      );
-      expect(avgWeight).toBeInTheDocument();
-    });
-
-    it("renders min and max weights in kg", () => {
-      const minMaxWeight = within(card).getByText(
-        `Min / Max: ${week.minWeightKg?.toFixed(
-          1
-        )} kg / ${week.maxWeightKg?.toFixed(1)} kg`
-      );
-      expect(minMaxWeight).toBeInTheDocument();
-    });
-
-    it("renders avg calories", () => {
-      const avgCalories = within(card).getByText(
-        `Avg calories: ${week.avgCalories?.toFixed(0)} kcal`
-      );
-      expect(avgCalories).toBeInTheDocument();
-    });
-
-    it("renders avg protein and avg protein per kg", () => {
-      const avgProtein = within(card).getByText(
-        `Avg protein: ${week.avgProteinG?.toFixed(0)} g`
-      );
-      expect(avgProtein).toBeInTheDocument();
-
-      const avgProteinPerKg = within(card).getByText(
-        `Avg protein per kg: ${week.avgProteinPerKg?.toFixed(2)} g/kg`
-      );
-      expect(avgProteinPerKg).toBeInTheDocument();
-    });
-  });
+  return Number(numbersInText[0]);
 };

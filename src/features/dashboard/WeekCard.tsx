@@ -1,13 +1,15 @@
-// src/features/dashboard/WeekCard.tsx
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
+import { formatData } from "./util/format";
 
 type WeekCardProps = {
   trend: WeekTrendMetrics;
   base: WeekEntry;
+  isOpen: boolean;
+  onToggle: () => void;
 };
 
-export function WeekCard({ trend, base }: WeekCardProps) {
+export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
   const {
     weekOf,
     avgWeightKg,
@@ -21,29 +23,56 @@ export function WeekCard({ trend, base }: WeekCardProps) {
     id,
   } = trend;
 
-  const stepsPerDay = base.avgStepsPerDay;
+  const detailsId = `week-card-${id}-details`;
 
   return (
     <li data-testid={`week-card-${id}`}>
-      <h2>Week of {weekOf}</h2>
-      <div>
-        <div>Avg weight: {avgWeightKg?.toFixed(1)} kg</div>
-        <div>
-          Min / Max: {minWeightKg?.toFixed(1)} kg / {maxWeightKg?.toFixed(1)} kg
+      <h2>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={isOpen}
+          aria-controls={detailsId}
+        >
+          Week of {weekOf}
+        </button>
+      </h2>
+
+      {isOpen && (
+        <div id={detailsId} data-testid={detailsId}>
+          <div>
+            Avg weight: {formatData(avgWeightKg, { decimals: 1, unit: "kg" })}
+          </div>
+          <div>
+            Min / Max: {formatData(minWeightKg, { decimals: 1, unit: "kg" })} /{" "}
+            {formatData(maxWeightKg, { decimals: 1, unit: "kg" })}
+          </div>
+          <div>
+            Avg calories:{" "}
+            {formatData(avgCalories, { decimals: 0, unit: "kcal" })}
+          </div>
+          <div>
+            Avg protein: {formatData(avgProteinG, { decimals: 0, unit: "g" })}
+          </div>
+          <div>
+            Avg protein per kg:{" "}
+            {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
+          </div>
+          <div>
+            Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
+          </div>
+
+          <div>
+            Δ weight vs prev:{" "}
+            {weightChangeVsPrevKg !== undefined &&
+            weightChangeVsPrevPercent !== undefined
+              ? `${weightChangeVsPrevKg.toFixed(
+                  1
+                )} kg (${weightChangeVsPrevPercent.toFixed(1)}%)`
+              : "n/a"}
+          </div>
         </div>
-        <div>Avg calories: {avgCalories?.toFixed(0)} kcal</div>
-        <div>Avg protein: {avgProteinG?.toFixed(0)} g</div>
-        <div>Avg protein per kg: {avgProteinPerKg?.toFixed(2)} g/kg</div>
-        <div>Avg steps: {stepsPerDay}</div>
-        <div>
-          Δ weight vs prev:{" "}
-          {weightChangeVsPrevKg != null
-            ? `${weightChangeVsPrevKg.toFixed(
-                1
-              )} kg (${weightChangeVsPrevPercent?.toFixed(1)}%)`
-            : "n/a"}
-        </div>
-      </div>
+      )}
     </li>
   );
 }
