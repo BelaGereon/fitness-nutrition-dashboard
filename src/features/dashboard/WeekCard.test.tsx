@@ -131,4 +131,20 @@ describe("WeekCard", () => {
     expectLineToContainNA(/avg steps:/i);
     expectLineToContainNA(/Δ weight vs prev:/i);
   });
+
+  it("reflects open state via aria-expanded", () => {
+    const { rerender } = render(
+      <WeekCard trend={trend} base={base} isOpen={false} onToggle={() => {}} />
+    );
+
+    const button = screen.getByRole("button", {
+      name: `Week of ${trend.weekOf}`,
+    });
+    expect(button).toHaveAttribute("aria-expanded", "false");
+
+    rerender(
+      <WeekCard trend={trend} base={base} isOpen={true} onToggle={() => {}} />
+    );
+    expect(button).toHaveAttribute("aria-expanded", "true");
+  });
 });
