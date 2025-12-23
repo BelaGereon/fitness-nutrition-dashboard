@@ -139,6 +139,7 @@ describe("WeeklyOverviewPage", () => {
 
   it("does not edit steps when input is cancelled", async () => {
     const user = userEvent.setup();
+    const newStepsCount = "20000";
 
     await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
     await user.click(button(/edit steps/i));
@@ -149,15 +150,15 @@ describe("WeeklyOverviewPage", () => {
       /avg steps:/i
     );
 
-    expect(avgStepsField).not.toHaveTextContent("20000");
+    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
 
     await user.clear(input);
-    await user.type(input, "20000");
+    await user.type(input, newStepsCount);
 
-    expect(avgStepsField).not.toHaveTextContent("20000");
+    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
 
     await user.click(button("Cancel"));
 
-    expect(avgStepsField).not.toHaveTextContent("20000");
+    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
   });
 });
