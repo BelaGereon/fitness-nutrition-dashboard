@@ -234,4 +234,45 @@ describe("WeeklyOverviewPage", () => {
       )
     ).toBeCloseTo(expectedAvgWeightAfter, 1);
   });
+
+  it("should not change monday and avg weight values when input is cancelled", async () => {
+    const user = userEvent.setup();
+
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+
+    const weekDetails = within(details(firstTrendWeek));
+
+    const avgWeightBefore = extractFirstNumber(
+      weekDetails.getByText(/avg weight:/i).textContent ?? ""
+    );
+
+    const monWeightBefore = extractFirstNumber(
+      weekDetails.getByText(/mon weight:/i).textContent ?? ""
+    );
+
+    await user.click(
+      weekDetails.getByRole("button", { name: /edit monday weight/i })
+    );
+
+    const input = weekDetails.getByRole("spinbutton", {
+      name: /monday weight/i,
+    });
+
+    await user.clear(input);
+    await user.type(input, "80");
+
+    await user.click(button("Cancel"));
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/avg weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(avgWeightBefore, 1);
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/mon weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(monWeightBefore, 1);
+  });
 });
