@@ -161,4 +161,77 @@ describe("WeeklyOverviewPage", () => {
 
     expect(avgStepsField).not.toHaveTextContent(newStepsCount);
   });
+
+  it("allows editing Monday weight and recomputes avg weight after saving", async () => {
+    const user = userEvent.setup();
+
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+
+    const weekDetails = within(details(firstTrendWeek));
+
+    const avgWeightBefore = extractFirstNumber(
+      weekDetails.getByText(/avg weight:/i).textContent ?? ""
+    );
+
+    const monWeightBefore = extractFirstNumber(
+      weekDetails.getByText(/mon weight:/i).textContent ?? ""
+    );
+
+    await user.click(
+      weekDetails.getByRole("button", { name: /edit monday weight/i })
+    );
+
+    const input = weekDetails.getByRole("spinbutton", {
+      name: /monday weight/i,
+    });
+
+    await user.clear(input);
+    await user.type(input, "80");
+
+    // still unchanged while editing (commit only on Save)
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/avg weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(avgWeightBefore, 1);
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/mon weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(monWeightBefore, 1);
+
+    await user.click(
+      weekDetails.getByRole("button", { name: /save monday weight/i })
+    );
+
+    // expected recomputed avg weight using the same domain function
+    const updatedWeeks = sampleWeeks.map((w) =>
+      w.id !== firstTrendWeek.id
+        ? w
+        : {
+            ...w,
+            days: {
+              ...w.days,
+              mon: { ...w.days.mon, weightKg: 80 },
+            },
+          }
+    );
+
+    const expectedAvgWeightAfter = computeTrendMetrics(updatedWeeks).find(
+      (w) => w.id === firstTrendWeek.id
+    )!.avgWeightKg!;
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/mon weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(80, 1);
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/avg weight:/i).textContent ?? ""
+      )
+    ).toBeCloseTo(expectedAvgWeightAfter, 1);
+  });
 });

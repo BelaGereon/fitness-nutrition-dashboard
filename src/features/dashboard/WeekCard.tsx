@@ -1,5 +1,5 @@
 import React from "react";
-import type { WeekEntry } from "../../domain/week";
+import type { DayEntry, DayId, WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 import { formatData } from "./util/format";
 
@@ -9,6 +9,7 @@ type WeekCardProps = {
   isOpen: boolean;
   onToggle: () => void;
   onUpdateWeek: (patch: Partial<WeekEntry>) => void;
+  onUpdateDay: (dayId: DayId, patch: Partial<DayEntry>) => void;
 };
 
 export function WeekCard({
@@ -17,6 +18,7 @@ export function WeekCard({
   isOpen,
   onToggle,
   onUpdateWeek,
+  onUpdateDay,
 }: WeekCardProps) {
   const {
     weekOf,
@@ -32,6 +34,26 @@ export function WeekCard({
   } = trend;
 
   const detailsId = `week-card-${id}-details`;
+
+  const [isEditingMonWeight, setIsEditingMonWeight] = React.useState(false);
+  const [draftMonWeight, setDraftMonWeight] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (isEditingMonWeight) {
+      setDraftMonWeight(base.days.mon.weightKg?.toString() ?? "");
+    }
+  }, [isEditingMonWeight, base.days.mon.weightKg]);
+
+  const commitMonWeight = () => {
+    const trimmed = draftMonWeight.trim();
+    const parsed = trimmed === "" ? undefined : Number.parseFloat(trimmed);
+
+    if (parsed !== undefined && Number.isNaN(parsed)) return;
+
+    onUpdateDay("mon", { weightKg: parsed });
+    setIsEditingMonWeight(false);
+  };
+
   const [isEditingSteps, setIsEditingSteps] = React.useState(false);
   const [draftSteps, setDraftSteps] = React.useState<string>("");
 
@@ -118,6 +140,36 @@ export function WeekCard({
                   1
                 )} kg (${weightChangeVsPrevPercent.toFixed(1)}%)`
               : "n/a"}
+          </div>
+
+          <div>
+            Mon weight:{" "}
+            {formatData(base.days.mon.weightKg, { decimals: 1, unit: "kg" })}
+            {!isEditingMonWeight ? (
+              <button type="button" onClick={() => setIsEditingMonWeight(true)}>
+                Edit Monday weight
+              </button>
+            ) : (
+              <>
+                <label htmlFor={`${id}-mon-weight`}>Monday weight (kg)</label>
+                <input
+                  id={`${id}-mon-weight`}
+                  type="number"
+                  step="0.1"
+                  value={draftMonWeight}
+                  onChange={(e) => setDraftMonWeight(e.target.value)}
+                />
+                <button type="button" onClick={commitMonWeight}>
+                  Save Monday weight
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingMonWeight(false)}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -38,7 +38,14 @@ describe("WeekCard", () => {
 
   it("renders the week title as an accessible button so the card can be interacted with", () => {
     render(
-      <WeekCard trend={trend} base={base} isOpen={false} onToggle={vi.fn()} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={false}
+        onToggle={vi.fn()}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
 
     expect(
@@ -51,7 +58,14 @@ describe("WeekCard", () => {
     const onToggle = vi.fn();
 
     render(
-      <WeekCard trend={trend} base={base} isOpen={false} onToggle={onToggle} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={false}
+        onToggle={onToggle}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
 
     await user.click(
@@ -64,13 +78,28 @@ describe("WeekCard", () => {
     const detailsTestId = `week-card-${trend.id}-details`;
 
     const { rerender } = render(
-      <WeekCard trend={trend} base={base} isOpen={false} onToggle={() => {}} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={false}
+        onToggle={() => {}}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
     expect(screen.queryByTestId(detailsTestId)).not.toBeInTheDocument();
 
     rerender(
-      <WeekCard trend={trend} base={base} isOpen={true} onToggle={() => {}} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={true}
+        onToggle={() => {}}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
+
     expect(screen.getByTestId(detailsTestId)).toBeInTheDocument();
   });
 
@@ -110,6 +139,8 @@ describe("WeekCard", () => {
         base={incompleteBase}
         isOpen={true}
         onToggle={() => {}}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
       />
     );
 
@@ -134,7 +165,14 @@ describe("WeekCard", () => {
 
   it("reflects open state via aria-expanded", () => {
     const { rerender } = render(
-      <WeekCard trend={trend} base={base} isOpen={false} onToggle={() => {}} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={false}
+        onToggle={() => {}}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
 
     const button = screen.getByRole("button", {
@@ -143,7 +181,14 @@ describe("WeekCard", () => {
     expect(button).toHaveAttribute("aria-expanded", "false");
 
     rerender(
-      <WeekCard trend={trend} base={base} isOpen={true} onToggle={() => {}} />
+      <WeekCard
+        trend={trend}
+        base={base}
+        isOpen={true}
+        onToggle={() => {}}
+        onUpdateWeek={() => {}}
+        onUpdateDay={() => {}}
+      />
     );
     expect(button).toHaveAttribute("aria-expanded", "true");
   });
