@@ -21,9 +21,7 @@ describe("WeeklyOverviewPage", () => {
 
   it("shows a details panel with the expected fields when a week is opened", async () => {
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
-    );
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
     const detailsContainer = screen.getByTestId(
       `week-card-${firstTrendWeek.id}-details`
@@ -41,9 +39,7 @@ describe("WeeklyOverviewPage", () => {
 
   it("renders no delta for a week with no previous avg weight", async () => {
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
-    );
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
     const details = screen.getByTestId(
       `week-card-${firstTrendWeek.id}-details`
@@ -55,9 +51,7 @@ describe("WeeklyOverviewPage", () => {
 
   it("renders a delta for a week with previous avg weight", async () => {
     const user = userEvent.setup();
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${secondTrendWeek.weekOf}` })
-    );
+    await user.click(button(`Week of ${secondTrendWeek.weekOf}`));
 
     const details = screen.getByTestId(
       `week-card-${secondTrendWeek.id}-details`
@@ -70,12 +64,8 @@ describe("WeeklyOverviewPage", () => {
 
   it("only allows one week card to be open at a time", async () => {
     const user = userEvent.setup();
-    const firstWeekButton = screen.getByRole("button", {
-      name: `Week of ${firstTrendWeek.weekOf}`,
-    });
-    const secondWeekButton = screen.getByRole("button", {
-      name: `Week of ${secondTrendWeek.weekOf}`,
-    });
+    const firstWeekButton = button(`Week of ${firstTrendWeek.weekOf}`);
+    const secondWeekButton = button(`Week of ${secondTrendWeek.weekOf}`);
 
     // Open first week
     await user.click(firstWeekButton);
@@ -125,22 +115,26 @@ describe("WeeklyOverviewPage", () => {
   it("allows editing avg steps and reflects the change in the UI", async () => {
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
-    );
-
-    await user.click(screen.getByRole("button", { name: /edit steps/i }));
-
-    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
-    await user.clear(input);
-    await user.type(input, "10000");
-
-    await user.click(screen.getByRole("button", { name: /save steps/i }));
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
     const details = screen.getByTestId(
       `week-card-${firstTrendWeek.id}-details`
     );
-    expect(within(details).getByText(/avg steps:/i)).toHaveTextContent("10000");
+
+    await user.click(button(/edit steps/i));
+
+    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
+
+    await user.clear(input);
+    await user.type(input, "10000");
+
+    const avgStepsField = within(details).getByText(/avg steps:/i);
+
+    expect(avgStepsField).not.toHaveTextContent("10000");
+
+    await user.click(button(/save steps/i));
+
+    expect(avgStepsField).toHaveTextContent("10000");
   });
 });
 
@@ -151,3 +145,6 @@ const extractFirstNumber = (text: string) => {
 
   return Number(numbersInText[0]);
 };
+
+const button = (buttonName: string | RegExp) =>
+  screen.getByRole("button", { name: buttonName });

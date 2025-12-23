@@ -32,7 +32,24 @@ export function WeekCard({
   } = trend;
 
   const detailsId = `week-card-${id}-details`;
-  const [editingMode, setEditingMode] = React.useState(false);
+  const [isEditingSteps, setIsEditingSteps] = React.useState(false);
+  const [draftSteps, setDraftSteps] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (isEditingSteps) {
+      setDraftSteps(base.avgStepsPerDay?.toString() ?? "");
+    }
+  }, [isEditingSteps, base.avgStepsPerDay]);
+
+  const commitSteps = () => {
+    const trimmed = draftSteps.trim();
+    const parsed = trimmed === "" ? undefined : Number.parseInt(trimmed, 10);
+
+    if (parsed !== undefined && Number.isNaN(parsed)) return; // or show error
+
+    onUpdateWeek({ avgStepsPerDay: parsed });
+    setIsEditingSteps(false);
+  };
 
   return (
     <li data-testid={`week-card-${id}`}>
@@ -69,30 +86,28 @@ export function WeekCard({
           </div>
           <div>
             Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
-            {!editingMode && (
-              <button
-                type="button"
-                onClick={() => setEditingMode((prev) => !prev)}
-              >
-                edit steps
-              </button>
-            )}
-            {editingMode && (
-              <div role="spinbutton" aria-label="Edit average steps per day">
-                <input
-                  type="number"
-                  aria-label="avg steps"
-                  defaultValue={base.avgStepsPerDay ?? ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const parsed = value === "" ? undefined : Number(value);
-                    onUpdateWeek({ avgStepsPerDay: parsed });
-                  }}
-                />
-                <button type="button" onClick={() => setEditingMode(false)}>
-                  save steps
+            {!isEditingSteps ? (
+              <>
+                <button type="button" onClick={() => setIsEditingSteps(true)}>
+                  Edit steps
                 </button>
-              </div>
+              </>
+            ) : (
+              <>
+                <label htmlFor={`${id}-avg-steps`}>Avg steps</label>
+                <input
+                  id={`${id}-avg-steps`}
+                  type="number"
+                  value={draftSteps}
+                  onChange={(e) => setDraftSteps(e.target.value)}
+                />
+                <button type="button" onClick={commitSteps}>
+                  Save steps
+                </button>
+                <button type="button" onClick={() => setIsEditingSteps(false)}>
+                  Cancel
+                </button>
+              </>
             )}
           </div>
           <div>
