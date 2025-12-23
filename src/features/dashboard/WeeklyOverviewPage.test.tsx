@@ -177,9 +177,7 @@ describe("WeeklyOverviewPage", () => {
       weekDetails.getByText(/mon weight:/i).textContent ?? ""
     );
 
-    await user.click(
-      weekDetails.getByRole("button", { name: /edit monday weight/i })
-    );
+    await user.click(button(/edit monday weight/i));
 
     const input = weekDetails.getByRole("spinbutton", {
       name: /monday weight/i,
@@ -201,9 +199,7 @@ describe("WeeklyOverviewPage", () => {
       )
     ).toBeCloseTo(monWeightBefore, 1);
 
-    await user.click(
-      weekDetails.getByRole("button", { name: /save monday weight/i })
-    );
+    await user.click(button(/save monday weight/i));
 
     // expected recomputed avg weight using the same domain function
     const updatedWeeks = sampleWeeks.map((w) =>
@@ -245,14 +241,11 @@ describe("WeeklyOverviewPage", () => {
     const avgWeightBefore = extractFirstNumber(
       weekDetails.getByText(/avg weight:/i).textContent ?? ""
     );
-
     const monWeightBefore = extractFirstNumber(
       weekDetails.getByText(/mon weight:/i).textContent ?? ""
     );
 
-    await user.click(
-      weekDetails.getByRole("button", { name: /edit monday weight/i })
-    );
+    await user.click(button(/edit monday weight/i));
 
     const input = weekDetails.getByRole("spinbutton", {
       name: /monday weight/i,
@@ -274,5 +267,38 @@ describe("WeeklyOverviewPage", () => {
         weekDetails.getByText(/mon weight:/i).textContent ?? ""
       )
     ).toBeCloseTo(monWeightBefore, 1);
+  });
+
+  it("computed empty weight changes as 'undefined'", async () => {
+    const user = userEvent.setup();
+
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+
+    const weekDetails = within(details(firstTrendWeek));
+
+    const avgWeightBefore = extractFirstNumber(
+      weekDetails.getByText(/avg weight:/i).textContent ?? ""
+    );
+
+    await user.click(
+      weekDetails.getByRole("button", { name: /edit monday weight/i })
+    );
+
+    const input = weekDetails.getByRole("spinbutton", {
+      name: /monday weight/i,
+    });
+
+    await user.clear(input);
+    await user.type(input, " ");
+
+    await user.click(button(/Save Monday weight/i));
+
+    expect(
+      extractFirstNumber(
+        weekDetails.getByText(/avg weight:/i).textContent ?? ""
+      )
+    ).not.toBeCloseTo(avgWeightBefore, 1);
+
+    expect(weekDetails.getByText(/mon weight:/i)).toHaveTextContent("n/a");
   });
 });
