@@ -75,8 +75,8 @@ describe("WeekCard", () => {
 
   it("renders details only when isOpen=true", () => {
     const detailsId = detailsTestIdForWeekId(trend.id);
-
     const { rerender, props } = renderWeekCard({ isOpen: false });
+
     expect(screen.queryByTestId(detailsId)).not.toBeInTheDocument();
 
     rerender(<WeekCard {...props} isOpen={true} />);
