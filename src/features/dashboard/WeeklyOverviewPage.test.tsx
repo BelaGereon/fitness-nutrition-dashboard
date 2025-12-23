@@ -1,30 +1,24 @@
 import userEvent from "@testing-library/user-event";
-
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
+import { computeTrendMetrics } from "../../domain/weekTrend";
 import {
-  computeTrendMetrics,
-  type WeekTrendMetrics,
-} from "../../domain/weekTrend";
+  cancelEdit,
+  extractFirstNumber,
+  numberOf,
+  openWeek,
+  queryDetailsEl,
+  saveEdit,
+  setDraftNumberField,
+  textOf,
+  weekToggleButton,
+  getDetailsEl,
+} from "./testUtils";
 
 const trend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = trend;
-
-const extractFirstNumber = (text: string) => {
-  const numbersInText = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
-
-  if (!numbersInText) throw new Error(`No number found in: ${text}`);
-
-  return Number(numbersInText[0]);
-};
-
-const button = (buttonName: string | RegExp) =>
-  screen.getByRole("button", { name: buttonName });
-
-const details = (week: WeekTrendMetrics) =>
-  screen.getByTestId(`week-card-${week.id}-details`);
 
 describe("WeeklyOverviewPage", () => {
   beforeEach(() => {
@@ -33,14 +27,12 @@ describe("WeeklyOverviewPage", () => {
 
   it("renders one card per trend week", () => {
     const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings.length).toBe(computeTrendMetrics(sampleWeeks).length);
+    expect(headings).toHaveLength(trend.length);
   });
 
   it("shows a details panel with the expected fields when a week is opened", async () => {
     const user = userEvent.setup();
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-
-    const weekDetails = within(details(firstTrendWeek));
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
     expect(weekDetails.getByText(/avg weight:/i)).toBeInTheDocument();
     expect(weekDetails.getByText(/min \/ max:/i)).toBeInTheDocument();
@@ -53,23 +45,18 @@ describe("WeeklyOverviewPage", () => {
 
   it("renders no delta for a week with no previous avg weight", async () => {
     const user = userEvent.setup();
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    const deltaText = within(details(firstTrendWeek)).getByText(
-      /Δ weight vs prev:/i
+    expect(weekDetails.getByText(/Δ weight vs prev:/i)).toHaveTextContent(
+      /n\/a/i
     );
-
-    expect(deltaText).toHaveTextContent(/n\/a/i);
   });
 
   it("renders a delta for a week with previous avg weight", async () => {
     const user = userEvent.setup();
-    await user.click(button(`Week of ${secondTrendWeek.weekOf}`));
+    const weekDetails = await openWeek(user, secondTrendWeek);
 
-    const deltaText = within(details(secondTrendWeek)).getByText(
-      /Δ weight vs prev:/i
-    );
-
+    const deltaText = weekDetails.getByText(/Δ weight vs prev:/i);
     expect(deltaText).not.toHaveTextContent(/n\/a/i);
     expect(deltaText).toHaveTextContent(/kg/);
   });
@@ -77,132 +64,101 @@ describe("WeeklyOverviewPage", () => {
   it("only allows one week card to be open at a time", async () => {
     const user = userEvent.setup();
 
-    const firstWeekButton = button(`Week of ${firstTrendWeek.weekOf}`);
-    const secondWeekButton = button(`Week of ${secondTrendWeek.weekOf}`);
+    await user.click(weekToggleButton(firstTrendWeek));
+    expect(getDetailsEl(firstTrendWeek)).toBeInTheDocument();
+    expect(queryDetailsEl(secondTrendWeek)).not.toBeInTheDocument();
 
-    await user.click(firstWeekButton);
-    expect(details(firstTrendWeek)).toBeInTheDocument();
-    expect(
-      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
-    ).not.toBeInTheDocument();
+    await user.click(weekToggleButton(secondTrendWeek));
+    expect(queryDetailsEl(firstTrendWeek)).not.toBeInTheDocument();
+    expect(getDetailsEl(secondTrendWeek)).toBeInTheDocument();
 
-    await user.click(secondWeekButton);
-    expect(
-      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
-    ).not.toBeInTheDocument();
-    expect(details(secondTrendWeek)).toBeInTheDocument();
-
-    await user.click(secondWeekButton);
-    expect(
-      screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
-    ).not.toBeInTheDocument();
+    await user.click(weekToggleButton(secondTrendWeek));
+    expect(queryDetailsEl(firstTrendWeek)).not.toBeInTheDocument();
+    expect(queryDetailsEl(secondTrendWeek)).not.toBeInTheDocument();
   });
 
   it("wires the correct week data into the opened card", async () => {
     const user = userEvent.setup();
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-
-    const avgWeightText =
-      within(details(firstTrendWeek)).getByText(/avg weight:/i).textContent ??
-      "";
-    const renderedAvgWeight = extractFirstNumber(avgWeightText);
-
+    const renderedAvgWeight = numberOf(weekDetails, /avg weight:/i);
     expect(renderedAvgWeight).toBeCloseTo(firstTrendWeek.avgWeightKg!, 1);
   });
 
   it("allows editing avg steps and reflects the change in the UI", async () => {
     const user = userEvent.setup();
-    const newStepCount = "10000";
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-    await user.click(button(/edit steps/i));
+    const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
 
-    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
+    await setDraftNumberField({
+      user,
+      scope: weekDetails,
+      editButtonName: /edit steps/i,
+      inputName: /avg steps/i,
+      value: "10000",
+    });
 
-    await user.clear(input);
-    await user.type(input, newStepCount);
+    // unchanged until save
+    expect(avgStepsLine()).not.toHaveTextContent("10000");
 
-    const avgStepsField = within(details(firstTrendWeek)).getByText(
-      /avg steps:/i
-    );
+    await saveEdit(user, weekDetails, /save steps/i);
 
-    expect(avgStepsField).not.toHaveTextContent(newStepCount);
-
-    await user.click(button(/save steps/i));
-
-    expect(avgStepsField).toHaveTextContent(newStepCount);
+    // re-query line after save (more robust)
+    expect(avgStepsLine()).toHaveTextContent("10000");
   });
 
   it("does not edit steps when input is cancelled", async () => {
     const user = userEvent.setup();
-    const newStepsCount = "20000";
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-    await user.click(button(/edit steps/i));
+    const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
+    expect(avgStepsLine()).not.toHaveTextContent("20000");
 
-    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
+    await setDraftNumberField({
+      user,
+      scope: weekDetails,
+      editButtonName: /edit steps/i,
+      inputName: /avg steps/i,
+      value: "20000",
+    });
 
-    const avgStepsField = within(details(firstTrendWeek)).getByText(
-      /avg steps:/i
-    );
+    // unchanged until save
+    expect(avgStepsLine()).not.toHaveTextContent("20000");
 
-    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
+    await cancelEdit(user, weekDetails);
 
-    await user.clear(input);
-    await user.type(input, newStepsCount);
-
-    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
-
-    await user.click(button("Cancel"));
-
-    expect(avgStepsField).not.toHaveTextContent(newStepsCount);
+    expect(avgStepsLine()).not.toHaveTextContent("20000");
   });
 
   it("allows editing Monday weight and recomputes avg weight after saving", async () => {
     const user = userEvent.setup();
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-    const weekDetails = within(details(firstTrendWeek));
+    const avgWeightBefore = numberOf(weekDetails, /avg weight:/i);
+    const monWeightBefore = numberOf(weekDetails, /mon weight:/i);
 
-    const avgWeightBefore = extractFirstNumber(
-      weekDetails.getByText(/avg weight:/i).textContent ?? ""
-    );
-    const monWeightBefore = extractFirstNumber(
-      weekDetails.getByText(/mon weight:/i).textContent ?? ""
-    );
-
-    await user.click(
-      weekDetails.getByRole("button", { name: /edit monday weight/i })
-    );
-
-    const input = weekDetails.getByRole("spinbutton", {
-      name: /monday weight/i,
+    await setDraftNumberField({
+      user,
+      scope: weekDetails,
+      editButtonName: /edit monday weight/i,
+      inputName: /monday weight/i,
+      value: "80",
     });
-    await user.clear(input);
-    await user.type(input, "80");
 
-    // still unchanged while editing (commit only on Save)
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/avg weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(avgWeightBefore, 1);
-
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/mon weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(monWeightBefore, 1);
-
-    await user.click(
-      weekDetails.getByRole("button", { name: /save monday weight/i })
+    // unchanged until save
+    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
+      avgWeightBefore,
+      1
+    );
+    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(
+      monWeightBefore,
+      1
     );
 
-    // expected recomputed avg weight using the same domain function
+    await saveEdit(user, weekDetails, /save monday weight/i);
+
+    // expected recomputed avg using the same domain function
     const updatedWeeks = sampleWeeks.map((w) =>
       w.id !== firstTrendWeek.id
         ? w
@@ -219,87 +175,83 @@ describe("WeeklyOverviewPage", () => {
       (w) => w.id === firstTrendWeek.id
     )!.avgWeightKg!;
 
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/mon weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(80, 1);
-
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/avg weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(expectedAvgWeightAfter, 1);
+    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(80, 1);
+    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
+      expectedAvgWeightAfter,
+      1
+    );
   });
 
-  it("should not change monday and avg weight values when input is cancelled", async () => {
+  it("does not change monday and avg weight values when input is cancelled", async () => {
     const user = userEvent.setup();
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+    const avgWeightBefore = numberOf(weekDetails, /avg weight:/i);
+    const monWeightBefore = numberOf(weekDetails, /mon weight:/i);
 
-    const weekDetails = within(details(firstTrendWeek));
-
-    const avgWeightBefore = extractFirstNumber(
-      weekDetails.getByText(/avg weight:/i).textContent ?? ""
-    );
-    const monWeightBefore = extractFirstNumber(
-      weekDetails.getByText(/mon weight:/i).textContent ?? ""
-    );
-
-    await user.click(button(/edit monday weight/i));
-
-    const input = weekDetails.getByRole("spinbutton", {
-      name: /monday weight/i,
+    await setDraftNumberField({
+      user,
+      scope: weekDetails,
+      editButtonName: /edit monday weight/i,
+      inputName: /monday weight/i,
+      value: "80",
     });
 
-    await user.clear(input);
-    await user.type(input, "80");
+    await cancelEdit(user, weekDetails);
 
-    await user.click(button("Cancel"));
-
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/avg weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(avgWeightBefore, 1);
-
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/mon weight:/i).textContent ?? ""
-      )
-    ).toBeCloseTo(monWeightBefore, 1);
+    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
+      avgWeightBefore,
+      1
+    );
+    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(
+      monWeightBefore,
+      1
+    );
   });
 
-  it("computed empty weight changes as 'undefined'", async () => {
+  it("treats an empty Monday weight input as undefined (renders 'n/a')", async () => {
     const user = userEvent.setup();
+    const weekDetails = await openWeek(user, firstTrendWeek);
 
-    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-
-    const weekDetails = within(details(firstTrendWeek));
-
-    const avgWeightBefore = extractFirstNumber(
-      weekDetails.getByText(/avg weight:/i).textContent ?? ""
-    );
-
-    await user.click(
-      weekDetails.getByRole("button", { name: /edit monday weight/i })
-    );
-
-    const input = weekDetails.getByRole("spinbutton", {
-      name: /monday weight/i,
+    // Save an empty input (clear + save) => undefined
+    await setDraftNumberField({
+      user,
+      scope: weekDetails,
+      editButtonName: /edit monday weight/i,
+      inputName: /monday weight/i,
+      value: "",
     });
 
-    await user.clear(input);
-    await user.type(input, " ");
+    await saveEdit(user, weekDetails, /save monday weight/i);
 
-    await user.click(button(/Save Monday weight/i));
+    expect(weekDetails.getByText(/mon weight:/i)).toHaveTextContent(/n\/a/i);
 
-    expect(
-      extractFirstNumber(
-        weekDetails.getByText(/avg weight:/i).textContent ?? ""
-      )
-    ).not.toBeCloseTo(avgWeightBefore, 1);
+    // Optional: assert avg weight matches domain expectation (handles undefined)
+    const updatedWeeks = sampleWeeks.map((w) =>
+      w.id !== firstTrendWeek.id
+        ? w
+        : {
+            ...w,
+            days: {
+              ...w.days,
+              mon: { ...w.days.mon, weightKg: undefined },
+            },
+          }
+    );
 
-    expect(weekDetails.getByText(/mon weight:/i)).toHaveTextContent("n/a");
+    const expectedAvgWeightAfter = computeTrendMetrics(updatedWeeks).find(
+      (w) => w.id === firstTrendWeek.id
+    )?.avgWeightKg;
+
+    const avgWeightAfterText = textOf(weekDetails, /avg weight:/i);
+
+    if (expectedAvgWeightAfter === undefined) {
+      expect(avgWeightAfterText).toMatch(/n\/a/i);
+    } else {
+      expect(extractFirstNumber(avgWeightAfterText)).toBeCloseTo(
+        expectedAvgWeightAfter,
+        1
+      );
+    }
   });
 });
