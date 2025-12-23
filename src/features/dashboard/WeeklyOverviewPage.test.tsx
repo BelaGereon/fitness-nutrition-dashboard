@@ -136,4 +136,28 @@ describe("WeeklyOverviewPage", () => {
 
     expect(avgStepsField).toHaveTextContent(newStepCount);
   });
+
+  it("does not edit steps when input is cancelled", async () => {
+    const user = userEvent.setup();
+
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
+    await user.click(button(/edit steps/i));
+
+    const input = screen.getByRole("spinbutton", { name: /avg steps/i });
+
+    const avgStepsField = within(details(firstTrendWeek)).getByText(
+      /avg steps:/i
+    );
+
+    expect(avgStepsField).not.toHaveTextContent("20000");
+
+    await user.clear(input);
+    await user.type(input, "20000");
+
+    expect(avgStepsField).not.toHaveTextContent("20000");
+
+    await user.click(button("Cancel"));
+
+    expect(avgStepsField).not.toHaveTextContent("20000");
+  });
 });
