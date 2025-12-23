@@ -4,12 +4,29 @@ import { render, screen, within } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
-import { computeTrendMetrics } from "../../domain/weekTrend";
+import {
+  computeTrendMetrics,
+  type WeekTrendMetrics,
+} from "../../domain/weekTrend";
+
+const trend = computeTrendMetrics(sampleWeeks);
+const [firstTrendWeek, secondTrendWeek] = trend;
+
+const extractFirstNumber = (text: string) => {
+  const numbersInText = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
+
+  if (!numbersInText) throw new Error(`No number found in: ${text}`);
+
+  return Number(numbersInText[0]);
+};
+
+const button = (buttonName: string | RegExp) =>
+  screen.getByRole("button", { name: buttonName });
+
+const details = (week: WeekTrendMetrics) =>
+  screen.getByTestId(`week-card-${week.id}-details`);
 
 describe("WeeklyOverviewPage", () => {
-  const trend = computeTrendMetrics(sampleWeeks);
-  const [firstTrendWeek, secondTrendWeek] = trend;
-
   beforeEach(() => {
     render(<WeeklyOverviewPage />);
   });
@@ -23,28 +40,24 @@ describe("WeeklyOverviewPage", () => {
     const user = userEvent.setup();
     await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
-    const detailsContainer = screen.getByTestId(
-      `week-card-${firstTrendWeek.id}-details`
-    );
-    const details = within(detailsContainer);
+    const weekDetails = within(details(firstTrendWeek));
 
-    expect(details.getByText(/avg weight:/i)).toBeInTheDocument();
-    expect(details.getByText(/min \/ max:/i)).toBeInTheDocument();
-    expect(details.getByText(/avg calories:/i)).toBeInTheDocument();
-    expect(details.getByText(/avg protein:/i)).toBeInTheDocument();
-    expect(details.getByText(/avg protein per kg:/i)).toBeInTheDocument();
-    expect(details.getByText(/avg steps:/i)).toBeInTheDocument();
-    expect(details.getByText(/Δ weight vs prev:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/avg weight:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/min \/ max:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/avg calories:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/avg protein:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/avg protein per kg:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/avg steps:/i)).toBeInTheDocument();
+    expect(weekDetails.getByText(/Δ weight vs prev:/i)).toBeInTheDocument();
   });
 
   it("renders no delta for a week with no previous avg weight", async () => {
     const user = userEvent.setup();
     await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
-    const details = screen.getByTestId(
-      `week-card-${firstTrendWeek.id}-details`
+    const deltaText = within(details(firstTrendWeek)).getByText(
+      /Δ weight vs prev:/i
     );
-    const deltaText = within(details).getByText(/Δ weight vs prev:/i);
 
     expect(deltaText).toHaveTextContent(/n\/a/i);
   });
@@ -53,10 +66,9 @@ describe("WeeklyOverviewPage", () => {
     const user = userEvent.setup();
     await user.click(button(`Week of ${secondTrendWeek.weekOf}`));
 
-    const details = screen.getByTestId(
-      `week-card-${secondTrendWeek.id}-details`
+    const deltaText = within(details(secondTrendWeek)).getByText(
+      /Δ weight vs prev:/i
     );
-    const deltaText = within(details).getByText(/Δ weight vs prev:/i);
 
     expect(deltaText).not.toHaveTextContent(/n\/a/i);
     expect(deltaText).toHaveTextContent(/kg/);
@@ -64,28 +76,22 @@ describe("WeeklyOverviewPage", () => {
 
   it("only allows one week card to be open at a time", async () => {
     const user = userEvent.setup();
+
     const firstWeekButton = button(`Week of ${firstTrendWeek.weekOf}`);
     const secondWeekButton = button(`Week of ${secondTrendWeek.weekOf}`);
 
-    // Open first week
     await user.click(firstWeekButton);
-    expect(
-      screen.getByTestId(`week-card-${firstTrendWeek.id}-details`)
-    ).toBeInTheDocument();
+    expect(details(firstTrendWeek)).toBeInTheDocument();
     expect(
       screen.queryByTestId(`week-card-${secondTrendWeek.id}-details`)
     ).not.toBeInTheDocument();
 
-    // Open second week
     await user.click(secondWeekButton);
     expect(
       screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByTestId(`week-card-${secondTrendWeek.id}-details`)
-    ).toBeInTheDocument();
+    expect(details(secondTrendWeek)).toBeInTheDocument();
 
-    // Close second week
     await user.click(secondWeekButton);
     expect(
       screen.queryByTestId(`week-card-${firstTrendWeek.id}-details`)
@@ -98,15 +104,11 @@ describe("WeeklyOverviewPage", () => {
   it("wires the correct week data into the opened card", async () => {
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByRole("button", { name: `Week of ${firstTrendWeek.weekOf}` })
-    );
+    await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
 
-    const details = screen.getByTestId(
-      `week-card-${firstTrendWeek.id}-details`
-    );
     const avgWeightText =
-      within(details).getByText(/avg weight:/i).textContent ?? "";
+      within(details(firstTrendWeek)).getByText(/avg weight:/i).textContent ??
+      "";
     const renderedAvgWeight = extractFirstNumber(avgWeightText);
 
     expect(renderedAvgWeight).toBeCloseTo(firstTrendWeek.avgWeightKg!, 1);
@@ -114,37 +116,24 @@ describe("WeeklyOverviewPage", () => {
 
   it("allows editing avg steps and reflects the change in the UI", async () => {
     const user = userEvent.setup();
+    const newStepCount = "10000";
 
     await user.click(button(`Week of ${firstTrendWeek.weekOf}`));
-
-    const details = screen.getByTestId(
-      `week-card-${firstTrendWeek.id}-details`
-    );
-
     await user.click(button(/edit steps/i));
 
     const input = screen.getByRole("spinbutton", { name: /avg steps/i });
 
     await user.clear(input);
-    await user.type(input, "10000");
+    await user.type(input, newStepCount);
 
-    const avgStepsField = within(details).getByText(/avg steps:/i);
+    const avgStepsField = within(details(firstTrendWeek)).getByText(
+      /avg steps:/i
+    );
 
-    expect(avgStepsField).not.toHaveTextContent("10000");
+    expect(avgStepsField).not.toHaveTextContent(newStepCount);
 
     await user.click(button(/save steps/i));
 
-    expect(avgStepsField).toHaveTextContent("10000");
+    expect(avgStepsField).toHaveTextContent(newStepCount);
   });
 });
-
-const extractFirstNumber = (text: string) => {
-  const numbersInText = text.match(/-?\d+(\.\d+)?/); // Matches integers and decimals
-
-  if (!numbersInText) throw new Error(`No number found in: ${text}`);
-
-  return Number(numbersInText[0]);
-};
-
-const button = (buttonName: string | RegExp) =>
-  screen.getByRole("button", { name: buttonName });
