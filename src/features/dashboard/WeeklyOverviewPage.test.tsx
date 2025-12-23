@@ -9,12 +9,12 @@ import {
   extractFirstNumber,
   numberOf,
   openWeek,
-  queryDetailsEl,
+  queryWeekDetails,
   saveEdit,
   setDraftNumberField,
   textOf,
   weekToggleButton,
-  getDetailsEl,
+  weekDetails,
 } from "./testUtils";
 
 const trend = computeTrendMetrics(sampleWeeks);
@@ -65,16 +65,16 @@ describe("WeeklyOverviewPage", () => {
     const user = userEvent.setup();
 
     await user.click(weekToggleButton(firstTrendWeek));
-    expect(getDetailsEl(firstTrendWeek)).toBeInTheDocument();
-    expect(queryDetailsEl(secondTrendWeek)).not.toBeInTheDocument();
+    expect(weekDetails(firstTrendWeek)).toBeInTheDocument();
+    expect(queryWeekDetails(secondTrendWeek)).not.toBeInTheDocument();
 
     await user.click(weekToggleButton(secondTrendWeek));
-    expect(queryDetailsEl(firstTrendWeek)).not.toBeInTheDocument();
-    expect(getDetailsEl(secondTrendWeek)).toBeInTheDocument();
+    expect(queryWeekDetails(firstTrendWeek)).not.toBeInTheDocument();
+    expect(weekDetails(secondTrendWeek)).toBeInTheDocument();
 
     await user.click(weekToggleButton(secondTrendWeek));
-    expect(queryDetailsEl(firstTrendWeek)).not.toBeInTheDocument();
-    expect(queryDetailsEl(secondTrendWeek)).not.toBeInTheDocument();
+    expect(queryWeekDetails(firstTrendWeek)).not.toBeInTheDocument();
+    expect(queryWeekDetails(secondTrendWeek)).not.toBeInTheDocument();
   });
 
   it("wires the correct week data into the opened card", async () => {

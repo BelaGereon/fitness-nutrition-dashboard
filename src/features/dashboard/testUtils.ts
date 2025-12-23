@@ -21,18 +21,15 @@ export const weekToggleButton = (week: Pick<WeekTrendMetrics, "weekOf">) =>
 export const detailsTestIdForWeekId = (weekId: string) =>
   `week-card-${weekId}-details`;
 
-export const detailsTestId = (week: Pick<WeekTrendMetrics, "id">) =>
-  detailsTestIdForWeekId(week.id);
+export const weekDetails = (week: Pick<WeekTrendMetrics, "id">) =>
+  screen.getByTestId(`week-card-${week.id}-details`);
 
-export const getDetailsEl = (week: Pick<WeekTrendMetrics, "id">) =>
-  screen.getByTestId(detailsTestId(week));
-
-export const queryDetailsEl = (week: Pick<WeekTrendMetrics, "id">) =>
-  screen.queryByTestId(detailsTestId(week));
+export const queryWeekDetails = (week: Pick<WeekTrendMetrics, "id">) =>
+  screen.queryByTestId(`week-card-${week.id}-details`);
 
 export const openWeek = async (user: User, week: WeekTrendMetrics) => {
   await user.click(weekToggleButton(week));
-  return within(getDetailsEl(week));
+  return within(weekDetails(week));
 };
 
 export const textOf = (scope: Scope, label: RegExp) =>
