@@ -5,13 +5,15 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import {
-  cancelEdit,
   extractFirstNumber,
+  cancelEdit,
+  enterEditMode,
+  gridCell,
   numberOf,
   openWeek,
   queryWeekDetails,
   saveEdit,
-  setDraftNumberField,
+  setNumberField,
   textOf,
   weekToggleButton,
   weekDetails,
@@ -41,6 +43,14 @@ describe("WeeklyOverviewPage", () => {
     expect(weekDetails.getByText(/avg protein per kg:/i)).toBeInTheDocument();
     expect(weekDetails.getByText(/avg steps:/i)).toBeInTheDocument();
     expect(weekDetails.getByText(/Δ weight vs prev:/i)).toBeInTheDocument();
+
+    // grid renders all day cells
+    expect(
+      gridCell(weekDetails, { dayId: "mon", metric: "weight" })
+    ).toBeInTheDocument();
+    expect(
+      gridCell(weekDetails, { dayId: "sun", metric: "protein" })
+    ).toBeInTheDocument();
   });
 
   it("renders no delta for a week with no previous avg weight", async () => {
@@ -91,20 +101,15 @@ describe("WeeklyOverviewPage", () => {
 
     const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
 
-    await setDraftNumberField({
+    await enterEditMode(user, weekDetails);
+    await setNumberField({
       user,
       scope: weekDetails,
-      editButtonName: /edit steps/i,
       inputName: /avg steps/i,
       value: "10000",
     });
 
-    // unchanged until save
-    expect(avgStepsLine()).not.toHaveTextContent("10000");
-
-    await saveEdit(user, weekDetails, /save steps/i);
-
-    // re-query line after save (more robust)
+    await saveEdit(user, weekDetails);
     expect(avgStepsLine()).toHaveTextContent("10000");
   });
 
@@ -115,16 +120,13 @@ describe("WeeklyOverviewPage", () => {
     const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
     expect(avgStepsLine()).not.toHaveTextContent("20000");
 
-    await setDraftNumberField({
+    await enterEditMode(user, weekDetails);
+    await setNumberField({
       user,
       scope: weekDetails,
-      editButtonName: /edit steps/i,
       inputName: /avg steps/i,
       value: "20000",
     });
-
-    // unchanged until save
-    expect(avgStepsLine()).not.toHaveTextContent("20000");
 
     await cancelEdit(user, weekDetails);
 
@@ -135,30 +137,16 @@ describe("WeeklyOverviewPage", () => {
     const user = userEvent.setup();
     const weekDetails = await openWeek(user, firstTrendWeek);
 
-    const avgWeightBefore = numberOf(weekDetails, /avg weight:/i);
-    const monWeightBefore = numberOf(weekDetails, /mon weight:/i);
-
-    await setDraftNumberField({
+    await enterEditMode(user, weekDetails);
+    await setNumberField({
       user,
       scope: weekDetails,
-      editButtonName: /edit monday weight/i,
-      inputName: /monday weight/i,
+      inputName: /mon weight/i,
       value: "80",
     });
 
-    // unchanged until save
-    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
-      avgWeightBefore,
-      1
-    );
-    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(
-      monWeightBefore,
-      1
-    );
+    await saveEdit(user, weekDetails);
 
-    await saveEdit(user, weekDetails, /save monday weight/i);
-
-    // expected recomputed avg using the same domain function
     const updatedWeeks = sampleWeeks.map((w) =>
       w.id !== firstTrendWeek.id
         ? w
@@ -175,7 +163,13 @@ describe("WeeklyOverviewPage", () => {
       (w) => w.id === firstTrendWeek.id
     )!.avgWeightKg!;
 
-    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(80, 1);
+    expect(
+      extractFirstNumber(
+        gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
+          ""
+      )
+    ).toBeCloseTo(80, 1);
+
     expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
       expectedAvgWeightAfter,
       1
@@ -187,13 +181,16 @@ describe("WeeklyOverviewPage", () => {
     const weekDetails = await openWeek(user, firstTrendWeek);
 
     const avgWeightBefore = numberOf(weekDetails, /avg weight:/i);
-    const monWeightBefore = numberOf(weekDetails, /mon weight:/i);
+    const monWeightBefore = extractFirstNumber(
+      gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
+        ""
+    );
 
-    await setDraftNumberField({
+    await enterEditMode(user, weekDetails);
+    await setNumberField({
       user,
       scope: weekDetails,
-      editButtonName: /edit monday weight/i,
-      inputName: /monday weight/i,
+      inputName: /mon weight/i,
       value: "80",
     });
 
@@ -203,30 +200,33 @@ describe("WeeklyOverviewPage", () => {
       avgWeightBefore,
       1
     );
-    expect(numberOf(weekDetails, /mon weight:/i)).toBeCloseTo(
-      monWeightBefore,
-      1
-    );
+
+    expect(
+      extractFirstNumber(
+        gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
+          ""
+      )
+    ).toBeCloseTo(monWeightBefore, 1);
   });
 
   it("treats an empty Monday weight input as undefined (renders 'n/a')", async () => {
     const user = userEvent.setup();
     const weekDetails = await openWeek(user, firstTrendWeek);
 
-    // Save an empty input (clear + save) => undefined
-    await setDraftNumberField({
+    await enterEditMode(user, weekDetails);
+    await setNumberField({
       user,
       scope: weekDetails,
-      editButtonName: /edit monday weight/i,
-      inputName: /monday weight/i,
+      inputName: /mon weight/i,
       value: "",
     });
 
-    await saveEdit(user, weekDetails, /save monday weight/i);
+    await saveEdit(user, weekDetails);
 
-    expect(weekDetails.getByText(/mon weight:/i)).toHaveTextContent(/n\/a/i);
+    expect(
+      gridCell(weekDetails, { dayId: "mon", metric: "weight" })
+    ).toHaveTextContent(/n\/a/i);
 
-    // Optional: assert avg weight matches domain expectation (handles undefined)
     const updatedWeeks = sampleWeeks.map((w) =>
       w.id !== firstTrendWeek.id
         ? w
