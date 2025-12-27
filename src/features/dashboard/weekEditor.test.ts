@@ -97,10 +97,7 @@ describe("weekEditor", () => {
       const base = baseWeek();
       const draft = toDraftWeek(base);
 
-      // week-level
       draft.avgStepsPerDay = "   ";
-
-      // day-level
       draft.days.mon.weightKg = "";
       draft.days.tue.calories = " ";
       draft.days.mon.proteinG = "   ";
