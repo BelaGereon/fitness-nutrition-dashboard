@@ -33,6 +33,7 @@ describe("weekEditor", () => {
       const base = baseWeek();
       base.avgStepsPerDay = undefined;
       const draft = toDraftWeek(base);
+
       expect(draft.avgStepsPerDay).toBe("");
     });
 
@@ -75,8 +76,8 @@ describe("weekEditor", () => {
     it("preserves base fields when parsing succeeds", () => {
       const base = baseWeek();
       const draft = toDraftWeek(base);
-
       const updated = fromDraftWeek(base, draft);
+
       expect(updated).not.toBeNull();
       if (!updated) throw new Error("expected updated week");
 
@@ -120,7 +121,7 @@ describe("weekEditor", () => {
     it("returns null when weightKg is invalid", () => {
       const base = baseWeek();
       const draft = toDraftWeek(base);
-      draft.days.mon.weightKg = "nope";
+      draft.days.mon.weightKg = "invalid input";
 
       expect(fromDraftWeek(base, draft)).toBeNull();
     });
@@ -128,7 +129,7 @@ describe("weekEditor", () => {
     it("returns null when calories is invalid", () => {
       const base = baseWeek();
       const draft = toDraftWeek(base);
-      draft.days.tue.calories = "12k";
+      draft.days.tue.calories = "3k";
 
       expect(fromDraftWeek(base, draft)).toBeNull();
     });
