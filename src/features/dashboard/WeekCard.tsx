@@ -211,25 +211,6 @@ export function WeekCard({
 
       {isOpen && (
         <div id={detailsId} data-testid={detailsId}>
-          <div>
-            Avg weight: {formatData(avgWeightKg, { decimals: 1, unit: "kg" })}
-          </div>
-          <div>
-            Min / Max: {formatData(minWeightKg, { decimals: 1, unit: "kg" })} /{" "}
-            {formatData(maxWeightKg, { decimals: 1, unit: "kg" })}
-          </div>
-          <div>
-            Avg calories:{" "}
-            {formatData(avgCalories, { decimals: 0, unit: "kcal" })}
-          </div>
-          <div>
-            Avg protein: {formatData(avgProteinG, { decimals: 0, unit: "g" })}
-          </div>
-          <div>
-            Avg protein per kg:{" "}
-            {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
-          </div>
-
           {!isEditing ? (
             <button type="button" onClick={startEdit}>
               Edit
@@ -248,6 +229,24 @@ export function WeekCard({
           {hasValidationError && (
             <div role="alert">Please fix invalid inputs before saving.</div>
           )}
+          <div>
+            Avg weight: {formatData(avgWeightKg, { decimals: 1, unit: "kg" })}
+          </div>
+          <div>
+            Min / Max: {formatData(minWeightKg, { decimals: 1, unit: "kg" })} /{" "}
+            {formatData(maxWeightKg, { decimals: 1, unit: "kg" })}
+          </div>
+          <div>
+            Avg calories:{" "}
+            {formatData(avgCalories, { decimals: 0, unit: "kcal" })}
+          </div>
+          <div>
+            Avg protein: {formatData(avgProteinG, { decimals: 0, unit: "g" })}
+          </div>
+          <div>
+            Avg protein per kg:{" "}
+            {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
+          </div>
 
           <div>
             {!isEditing ? (
