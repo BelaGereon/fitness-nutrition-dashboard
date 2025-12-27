@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import {
@@ -16,136 +16,149 @@ import {
   setNumberField,
   textOf,
   weekToggleButton,
-  weekDetails,
+  weekDetails as weekDetailsElement,
 } from "./util/testUtils";
 
 const trend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = trend;
 
+const setup = () => {
+  render(<WeeklyOverviewPage />);
+  const user = userEvent.setup();
+  return { user };
+};
+
 describe("WeeklyOverviewPage", () => {
-  beforeEach(() => {
-    render(<WeeklyOverviewPage />);
-  });
-
-  it("renders one card per trend week", () => {
-    const headings = screen.getAllByRole("heading", { level: 2 });
-    expect(headings).toHaveLength(trend.length);
-  });
-
-  it("shows a details panel with the expected fields when a week is opened", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
-
-    expect(weekDetails.getByText(/avg weight:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/min \/ max:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/avg calories:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/avg protein:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/avg protein per kg:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/avg steps:/i)).toBeInTheDocument();
-    expect(weekDetails.getByText(/Δ weight vs prev:/i)).toBeInTheDocument();
-
-    // grid renders all day cells
-    expect(
-      gridCell(weekDetails, { dayId: "mon", metric: "weight" })
-    ).toBeInTheDocument();
-    expect(
-      gridCell(weekDetails, { dayId: "sun", metric: "protein" })
-    ).toBeInTheDocument();
-  });
-
-  it("renders no delta for a week with no previous avg weight", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
-
-    expect(weekDetails.getByText(/Δ weight vs prev:/i)).toHaveTextContent(
-      /n\/a/i
+  it("renders: one card per trend week", () => {
+    setup();
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
+      trend.length
     );
   });
 
-  it("renders a delta for a week with previous avg weight", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, secondTrendWeek);
+  it("open: shows summary fields when a week is opened", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    const deltaText = weekDetails.getByText(/Δ weight vs prev:/i);
+    const summaryLabels = [
+      /avg weight:/i,
+      /min \/ max:/i,
+      /avg calories:/i,
+      /avg protein:/i,
+      /avg protein per kg:/i,
+      /avg steps:/i,
+      /Δ weight vs prev:/i,
+    ];
+
+    for (const label of summaryLabels) {
+      expect(details.getByText(label)).toBeInTheDocument();
+    }
+  });
+
+  it("open: renders grid cells when a week is opened", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
+
+    expect(
+      gridCell(details, { dayId: "mon", metric: "weight" })
+    ).toBeInTheDocument();
+    expect(
+      gridCell(details, { dayId: "sun", metric: "protein" })
+    ).toBeInTheDocument();
+  });
+
+  it("open: renders no delta for a week with no previous avg weight", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
+
+    expect(details.getByText(/Δ weight vs prev:/i)).toHaveTextContent(/n\/a/i);
+  });
+
+  it("open: renders a delta for a week with previous avg weight", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, secondTrendWeek);
+
+    const deltaText = details.getByText(/Δ weight vs prev:/i);
     expect(deltaText).not.toHaveTextContent(/n\/a/i);
     expect(deltaText).toHaveTextContent(/kg/);
   });
 
-  it("only allows one week card to be open at a time", async () => {
-    const user = userEvent.setup();
+  it("accordion: only allows one week card to be open at a time", async () => {
+    const { user } = setup();
 
     await user.click(weekToggleButton(firstTrendWeek));
-    expect(weekDetails(firstTrendWeek)).toBeInTheDocument();
+    expect(weekDetailsElement(firstTrendWeek)).toBeInTheDocument();
     expect(queryWeekDetails(secondTrendWeek)).not.toBeInTheDocument();
 
     await user.click(weekToggleButton(secondTrendWeek));
     expect(queryWeekDetails(firstTrendWeek)).not.toBeInTheDocument();
-    expect(weekDetails(secondTrendWeek)).toBeInTheDocument();
+    expect(weekDetailsElement(secondTrendWeek)).toBeInTheDocument();
 
     await user.click(weekToggleButton(secondTrendWeek));
     expect(queryWeekDetails(firstTrendWeek)).not.toBeInTheDocument();
     expect(queryWeekDetails(secondTrendWeek)).not.toBeInTheDocument();
   });
 
-  it("wires the correct week data into the opened card", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("wires: correct week data into the opened card", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    const renderedAvgWeight = numberOf(weekDetails, /avg weight:/i);
-    expect(renderedAvgWeight).toBeCloseTo(firstTrendWeek.avgWeightKg!, 1);
+    expect(numberOf(details, /avg weight:/i)).toBeCloseTo(
+      firstTrendWeek.avgWeightKg!,
+      1
+    );
   });
 
-  it("allows editing avg steps and reflects the change in the UI", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("edit: allows editing avg steps and reflects change in UI", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
+    const avgStepsLine = () => details.getByText(/avg steps:/i);
 
-    await enterEditMode(user, weekDetails);
+    await enterEditMode(user, details);
     await setNumberField({
       user,
-      scope: weekDetails,
+      scope: details,
       inputName: /avg steps/i,
       value: "10000",
     });
 
-    await saveEdit(user, weekDetails);
+    await saveEdit(user, details);
     expect(avgStepsLine()).toHaveTextContent("10000");
   });
 
-  it("does not edit steps when input is cancelled", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("cancel: does not edit steps when input is cancelled", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    const avgStepsLine = () => weekDetails.getByText(/avg steps:/i);
+    const avgStepsLine = () => details.getByText(/avg steps:/i);
     expect(avgStepsLine()).not.toHaveTextContent("20000");
 
-    await enterEditMode(user, weekDetails);
+    await enterEditMode(user, details);
     await setNumberField({
       user,
-      scope: weekDetails,
+      scope: details,
       inputName: /avg steps/i,
       value: "20000",
     });
 
-    await cancelEdit(user, weekDetails);
-
+    await cancelEdit(user, details);
     expect(avgStepsLine()).not.toHaveTextContent("20000");
   });
 
-  it("allows editing Monday weight and recomputes avg weight after saving", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("recompute: editing Monday weight recomputes avg weight after saving", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    await enterEditMode(user, weekDetails);
+    await enterEditMode(user, details);
     await setNumberField({
       user,
-      scope: weekDetails,
+      scope: details,
       inputName: /mon weight/i,
       value: "80",
     });
 
-    await saveEdit(user, weekDetails);
+    await saveEdit(user, details);
 
     const updatedWeeks = sampleWeeks.map((w) =>
       w.id !== firstTrendWeek.id
@@ -165,66 +178,59 @@ describe("WeeklyOverviewPage", () => {
 
     expect(
       extractFirstNumber(
-        gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
-          ""
+        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
       )
     ).toBeCloseTo(80, 1);
 
-    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
+    expect(numberOf(details, /avg weight:/i)).toBeCloseTo(
       expectedAvgWeightAfter,
       1
     );
   });
 
-  it("does not change monday and avg weight values when input is cancelled", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("cancel: does not change Monday + avg weight when edit is cancelled", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    const avgWeightBefore = numberOf(weekDetails, /avg weight:/i);
+    const avgWeightBefore = numberOf(details, /avg weight:/i);
     const monWeightBefore = extractFirstNumber(
-      gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
-        ""
+      gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
     );
 
-    await enterEditMode(user, weekDetails);
+    await enterEditMode(user, details);
     await setNumberField({
       user,
-      scope: weekDetails,
+      scope: details,
       inputName: /mon weight/i,
       value: "80",
     });
 
-    await cancelEdit(user, weekDetails);
+    await cancelEdit(user, details);
 
-    expect(numberOf(weekDetails, /avg weight:/i)).toBeCloseTo(
-      avgWeightBefore,
-      1
-    );
-
+    expect(numberOf(details, /avg weight:/i)).toBeCloseTo(avgWeightBefore, 1);
     expect(
       extractFirstNumber(
-        gridCell(weekDetails, { dayId: "mon", metric: "weight" }).textContent ??
-          ""
+        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
       )
     ).toBeCloseTo(monWeightBefore, 1);
   });
 
-  it("treats an empty Monday weight input as undefined (renders 'n/a')", async () => {
-    const user = userEvent.setup();
-    const weekDetails = await openWeek(user, firstTrendWeek);
+  it("normalizes: empty Monday weight becomes undefined (renders 'n/a')", async () => {
+    const { user } = setup();
+    const details = await openWeek(user, firstTrendWeek);
 
-    await enterEditMode(user, weekDetails);
+    await enterEditMode(user, details);
     await setNumberField({
       user,
-      scope: weekDetails,
+      scope: details,
       inputName: /mon weight/i,
       value: "",
     });
 
-    await saveEdit(user, weekDetails);
+    await saveEdit(user, details);
 
     expect(
-      gridCell(weekDetails, { dayId: "mon", metric: "weight" })
+      gridCell(details, { dayId: "mon", metric: "weight" })
     ).toHaveTextContent(/n\/a/i);
 
     const updatedWeeks = sampleWeeks.map((w) =>
@@ -243,7 +249,7 @@ describe("WeeklyOverviewPage", () => {
       (w) => w.id === firstTrendWeek.id
     )?.avgWeightKg;
 
-    const avgWeightAfterText = textOf(weekDetails, /avg weight:/i);
+    const avgWeightAfterText = textOf(details, /avg weight:/i);
 
     if (expectedAvgWeightAfter === undefined) {
       expect(avgWeightAfterText).toMatch(/n\/a/i);
