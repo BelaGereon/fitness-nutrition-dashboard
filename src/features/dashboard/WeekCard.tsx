@@ -8,7 +8,7 @@ type WeekCardProps = {
   base: WeekEntry;
   isOpen: boolean;
   onToggle: () => void;
-  onSaveWeek: (nextWeek: WeekEntry) => void;
+  onSaveWeek: (updatedWeek: WeekEntry) => void;
 };
 
 export function WeekCard({
@@ -48,7 +48,7 @@ export function WeekCard({
 
     if (parsed !== undefined && Number.isNaN(parsed)) return;
 
-    const nextWeek: WeekEntry = {
+    const updatedWeek: WeekEntry = {
       ...base,
       days: {
         ...base.days,
@@ -59,7 +59,7 @@ export function WeekCard({
       },
     };
 
-    onSaveWeek(nextWeek);
+    onSaveWeek(updatedWeek);
     setIsEditingMonWeight(false);
   };
 
@@ -78,12 +78,12 @@ export function WeekCard({
 
     if (parsed !== undefined && Number.isNaN(parsed)) return;
 
-    const nextWeek: WeekEntry = {
+    const updatedWeek: WeekEntry = {
       ...base,
       avgStepsPerDay: parsed,
     };
 
-    onSaveWeek(nextWeek);
+    onSaveWeek(updatedWeek);
     setIsEditingSteps(false);
   };
 

@@ -15,9 +15,9 @@ export function WeeklyOverviewPage() {
     setOpenWeekId((prev) => (prev === id ? null : id));
   };
 
-  const saveWeek = (nextWeek: WeekEntry) => {
+  const saveWeek = (updatedWeek: WeekEntry) => {
     setWeeks((weeks) =>
-      weeks.map((week) => (week.id === nextWeek.id ? nextWeek : week))
+      weeks.map((week) => (week.id === updatedWeek.id ? updatedWeek : week))
     );
   };
 
