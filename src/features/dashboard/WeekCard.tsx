@@ -1,5 +1,5 @@
 import React from "react";
-import type { DayEntry, DayId, WeekEntry } from "../../domain/week";
+import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 import { formatData } from "./util/format";
 
@@ -8,8 +8,7 @@ type WeekCardProps = {
   base: WeekEntry;
   isOpen: boolean;
   onToggle: () => void;
-  onUpdateWeek: (patch: Partial<WeekEntry>) => void;
-  onUpdateDay: (dayId: DayId, patch: Partial<DayEntry>) => void;
+  onSaveWeek: (nextWeek: WeekEntry) => void;
 };
 
 export function WeekCard({
@@ -17,8 +16,7 @@ export function WeekCard({
   base,
   isOpen,
   onToggle,
-  onUpdateWeek,
-  onUpdateDay,
+  onSaveWeek,
 }: WeekCardProps) {
   const {
     weekOf,
@@ -50,7 +48,18 @@ export function WeekCard({
 
     if (parsed !== undefined && Number.isNaN(parsed)) return;
 
-    onUpdateDay("mon", { weightKg: parsed });
+    const nextWeek: WeekEntry = {
+      ...base,
+      days: {
+        ...base.days,
+        mon: {
+          ...base.days.mon,
+          weightKg: parsed,
+        },
+      },
+    };
+
+    onSaveWeek(nextWeek);
     setIsEditingMonWeight(false);
   };
 
@@ -67,9 +76,14 @@ export function WeekCard({
     const trimmed = draftSteps.trim();
     const parsed = trimmed === "" ? undefined : Number.parseInt(trimmed, 10);
 
-    if (parsed !== undefined && Number.isNaN(parsed)) return; // or show error
+    if (parsed !== undefined && Number.isNaN(parsed)) return;
 
-    onUpdateWeek({ avgStepsPerDay: parsed });
+    const nextWeek: WeekEntry = {
+      ...base,
+      avgStepsPerDay: parsed,
+    };
+
+    onSaveWeek(nextWeek);
     setIsEditingSteps(false);
   };
 
@@ -106,14 +120,13 @@ export function WeekCard({
             Avg protein per kg:{" "}
             {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
           </div>
+
           <div>
             Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
             {!isEditingSteps ? (
-              <>
-                <button type="button" onClick={() => setIsEditingSteps(true)}>
-                  Edit steps
-                </button>
-              </>
+              <button type="button" onClick={() => setIsEditingSteps(true)}>
+                Edit steps
+              </button>
             ) : (
               <>
                 <label htmlFor={`${id}-avg-steps`}>Avg steps</label>
@@ -132,6 +145,7 @@ export function WeekCard({
               </>
             )}
           </div>
+
           <div>
             Δ weight vs prev:{" "}
             {weightChangeVsPrevKg !== undefined &&

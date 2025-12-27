@@ -45,8 +45,7 @@ describe("WeekCard", () => {
       base,
       isOpen: false,
       onToggle: vi.fn(),
-      onUpdateWeek: vi.fn(),
-      onUpdateDay: vi.fn(),
+      onSaveWeek: vi.fn(),
       ...overrides,
     };
 
