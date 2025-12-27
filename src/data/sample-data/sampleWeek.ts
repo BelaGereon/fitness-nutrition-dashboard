@@ -59,4 +59,23 @@ export const sampleWeeks: WeekEntry[] = [
     totalVolumeKg: 37745.05,
     notes: "Third week of the meso, went close to failure on most sets.",
   },
+  {
+    id: "2025-12-15",
+    weekOf: "2025-12-15",
+    avgStepsPerDay: 9205,
+    days: {
+      mon: { weightKg: 79.5, calories: 2975, proteinG: 178 },
+      tue: { weightKg: 79.4, calories: 3015, proteinG: 168 },
+      wed: { weightKg: 79.7, calories: 3018, proteinG: 158 },
+      thu: { weightKg: 78.6, calories: 2978, proteinG: 147 },
+      fri: { weightKg: undefined, calories: 3084, proteinG: 158 },
+      sat: { weightKg: 79.8, calories: 3067, proteinG: 109 },
+      sun: { weightKg: undefined, calories: undefined, proteinG: undefined },
+    },
+    trainingSessionsDescription: "3x Full Body, 1x extra arm session",
+    totalSets: 64,
+    totalVolumeKg: 38098,
+    notes:
+      "Fourth week of the meso, went to failure on compound exercises like incline bench press and pull-ups etc. Getting stronger for almost all exercises so far.",
+  },
 ];

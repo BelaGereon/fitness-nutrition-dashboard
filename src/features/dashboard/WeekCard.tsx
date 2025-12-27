@@ -1,4 +1,5 @@
-import type { WeekEntry } from "../../domain/week";
+import React from "react";
+import type { DayEntry, DayId, WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 import { formatData } from "./util/format";
 
@@ -7,9 +8,18 @@ type WeekCardProps = {
   base: WeekEntry;
   isOpen: boolean;
   onToggle: () => void;
+  onUpdateWeek: (patch: Partial<WeekEntry>) => void;
+  onUpdateDay: (dayId: DayId, patch: Partial<DayEntry>) => void;
 };
 
-export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
+export function WeekCard({
+  trend,
+  base,
+  isOpen,
+  onToggle,
+  onUpdateWeek,
+  onUpdateDay,
+}: WeekCardProps) {
   const {
     weekOf,
     avgWeightKg,
@@ -24,6 +34,44 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
   } = trend;
 
   const detailsId = `week-card-${id}-details`;
+
+  const [isEditingMonWeight, setIsEditingMonWeight] = React.useState(false);
+  const [draftMonWeight, setDraftMonWeight] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (isEditingMonWeight) {
+      setDraftMonWeight(base.days.mon.weightKg?.toString() ?? "");
+    }
+  }, [isEditingMonWeight, base.days.mon.weightKg]);
+
+  const commitMonWeight = () => {
+    const trimmed = draftMonWeight.trim();
+    const parsed = trimmed === "" ? undefined : Number.parseFloat(trimmed);
+
+    if (parsed !== undefined && Number.isNaN(parsed)) return;
+
+    onUpdateDay("mon", { weightKg: parsed });
+    setIsEditingMonWeight(false);
+  };
+
+  const [isEditingSteps, setIsEditingSteps] = React.useState(false);
+  const [draftSteps, setDraftSteps] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (isEditingSteps) {
+      setDraftSteps(base.avgStepsPerDay?.toString() ?? "");
+    }
+  }, [isEditingSteps, base.avgStepsPerDay]);
+
+  const commitSteps = () => {
+    const trimmed = draftSteps.trim();
+    const parsed = trimmed === "" ? undefined : Number.parseInt(trimmed, 10);
+
+    if (parsed !== undefined && Number.isNaN(parsed)) return; // or show error
+
+    onUpdateWeek({ avgStepsPerDay: parsed });
+    setIsEditingSteps(false);
+  };
 
   return (
     <li data-testid={`week-card-${id}`}>
@@ -60,8 +108,30 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
           </div>
           <div>
             Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
+            {!isEditingSteps ? (
+              <>
+                <button type="button" onClick={() => setIsEditingSteps(true)}>
+                  Edit steps
+                </button>
+              </>
+            ) : (
+              <>
+                <label htmlFor={`${id}-avg-steps`}>Avg steps</label>
+                <input
+                  id={`${id}-avg-steps`}
+                  type="number"
+                  value={draftSteps}
+                  onChange={(e) => setDraftSteps(e.target.value)}
+                />
+                <button type="button" onClick={commitSteps}>
+                  Save steps
+                </button>
+                <button type="button" onClick={() => setIsEditingSteps(false)}>
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
-
           <div>
             Δ weight vs prev:{" "}
             {weightChangeVsPrevKg !== undefined &&
@@ -70,6 +140,36 @@ export function WeekCard({ trend, base, isOpen, onToggle }: WeekCardProps) {
                   1
                 )} kg (${weightChangeVsPrevPercent.toFixed(1)}%)`
               : "n/a"}
+          </div>
+
+          <div>
+            Mon weight:{" "}
+            {formatData(base.days.mon.weightKg, { decimals: 1, unit: "kg" })}
+            {!isEditingMonWeight ? (
+              <button type="button" onClick={() => setIsEditingMonWeight(true)}>
+                Edit Monday weight
+              </button>
+            ) : (
+              <>
+                <label htmlFor={`${id}-mon-weight`}>Monday weight (kg)</label>
+                <input
+                  id={`${id}-mon-weight`}
+                  type="number"
+                  step="0.1"
+                  value={draftMonWeight}
+                  onChange={(e) => setDraftMonWeight(e.target.value)}
+                />
+                <button type="button" onClick={commitMonWeight}>
+                  Save Monday weight
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingMonWeight(false)}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
