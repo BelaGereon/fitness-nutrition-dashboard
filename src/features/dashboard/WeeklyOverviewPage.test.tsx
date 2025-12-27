@@ -15,7 +15,7 @@ import {
   textOf,
   weekToggleButton,
   weekDetails,
-} from "./testUtils";
+} from "./util/testUtils";
 
 const trend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = trend;

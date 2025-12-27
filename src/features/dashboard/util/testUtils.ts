@@ -1,7 +1,7 @@
 // testUtils.ts
 import userEvent from "@testing-library/user-event";
 import { screen, within } from "@testing-library/react";
-import type { WeekTrendMetrics } from "../../domain/weekTrend";
+import type { WeekTrendMetrics } from "../../../domain/weekTrend";
 
 export type User = ReturnType<typeof userEvent.setup>;
 export type Scope = ReturnType<typeof within>;

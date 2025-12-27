@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import { WeekCard } from "./WeekCard";
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
-import { detailsTestIdForWeekId } from "./testUtils";
+import { detailsTestIdForWeekId } from "./util/testUtils";
 
 const base: WeekEntry = {
   id: "test-week",
