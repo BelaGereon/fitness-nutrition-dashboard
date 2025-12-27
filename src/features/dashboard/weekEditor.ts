@@ -42,33 +42,60 @@ export const toDraftWeek = (base: WeekEntry): DraftWeek => {
   };
 };
 
-const parseOptionalInt = (raw: string): number | undefined | "invalid" => {
+const INT_PATTERN = /^\d+$/;
+const FLOAT_PATTERN = /^\d+(\.\d+)?$/;
+
+const normalizeWeightInput = (raw: string): string | "invalid" => {
   const trimmed = raw.trim();
-  if (trimmed === "") return undefined;
-  const parsed = Number.parseInt(trimmed, 10);
-  return Number.isNaN(parsed) ? "invalid" : parsed;
+  if (trimmed === "") return "";
+  if (trimmed.includes(",") && trimmed.includes(".")) return "invalid";
+
+  return trimmed.replace(",", ".");
 };
 
-const parseOptionalFloat = (raw: string): number | undefined | "invalid" => {
+const parseOptionalNonNegativeInt = (
+  raw: string
+): number | undefined | "invalid" => {
   const trimmed = raw.trim();
   if (trimmed === "") return undefined;
-  const parsed = Number.parseFloat(trimmed);
-  return Number.isNaN(parsed) ? "invalid" : parsed;
+  if (!INT_PATTERN.test(trimmed)) return "invalid";
+
+  const parsed = Number.parseInt(trimmed, 10);
+  if (Number.isNaN(parsed)) return "invalid";
+  if (parsed < 0) return "invalid";
+  return parsed;
+};
+
+const parseOptionalNonNegativeFloatWeight = (
+  raw: string
+): number | undefined | "invalid" => {
+  const normalized = normalizeWeightInput(raw);
+  if (normalized === "invalid") return "invalid";
+  if (normalized === "") return undefined;
+
+  if (!FLOAT_PATTERN.test(normalized)) return "invalid";
+
+  const parsed = Number.parseFloat(normalized);
+  if (Number.isNaN(parsed)) return "invalid";
+  if (parsed < 0) return "invalid";
+  return parsed;
 };
 
 export const fromDraftWeek = (
   base: WeekEntry,
   draft: DraftWeek
 ): WeekEntry | null => {
-  const avgStepsPerDay = parseOptionalInt(draft.avgStepsPerDay);
+  const avgStepsPerDay = parseOptionalNonNegativeInt(draft.avgStepsPerDay);
   if (avgStepsPerDay === "invalid") return null;
 
   const nextDays: WeekEntry["days"] = { ...base.days };
 
   for (const dayId of DAY_IDS) {
-    const weightKg = parseOptionalFloat(draft.days[dayId].weightKg);
-    const calories = parseOptionalInt(draft.days[dayId].calories);
-    const proteinG = parseOptionalInt(draft.days[dayId].proteinG);
+    const weightKg = parseOptionalNonNegativeFloatWeight(
+      draft.days[dayId].weightKg
+    );
+    const calories = parseOptionalNonNegativeInt(draft.days[dayId].calories);
+    const proteinG = parseOptionalNonNegativeInt(draft.days[dayId].proteinG);
 
     if (
       weightKg === "invalid" ||
@@ -104,7 +131,6 @@ export function useWeekEditor(args: {
   const [draft, setDraft] = React.useState<DraftWeek>(() => toDraftWeek(base));
   const [hasValidationError, setHasValidationError] = React.useState(false);
 
-  // If the card closes mid-edit, we drop the edit session state.
   React.useEffect(() => {
     if (!isOpen) {
       setIsEditing(false);
