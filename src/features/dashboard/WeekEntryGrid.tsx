@@ -1,4 +1,3 @@
-import React from "react";
 import type { DayEntry, DayId } from "../../domain/week";
 import { DAY_IDS } from "../../domain/week";
 import { formatData } from "./util/format";
