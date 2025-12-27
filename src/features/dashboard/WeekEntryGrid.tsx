@@ -1,14 +1,7 @@
 import type { DayEntry, DayId } from "../../domain/week";
 import { DAY_IDS } from "../../domain/week";
 import { formatData } from "./util/format";
-
-type DraftDayEntry = {
-  weightKg: string;
-  calories: string;
-  proteinG: string;
-};
-
-export type DraftDays = Record<DayId, DraftDayEntry>;
+import type { DraftDays, DraftDayEntry } from "./weekEditor";
 
 type WeekEntryGridProps = {
   days: Record<DayId, DayEntry>;
