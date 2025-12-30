@@ -295,4 +295,27 @@ describe("WeeklyOverviewPage", () => {
       sampleWeeksTrend.length
     );
   });
+
+  it("persistence: calls WeeksStore.save with updated weeks after saving an edit", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store);
+    const details = await openWeek(user, firstTrendWeek);
+
+    await enterEditMode(user, details);
+    await setNumberField({
+      user,
+      scope: details,
+      inputName: /avg steps/i,
+      value: "10000",
+    });
+    await saveEdit(user, details);
+
+    expect(store.save).toHaveBeenCalledTimes(1);
+
+    const savedWeeks = (store.save as any).mock.calls[0][0] as WeekEntry[];
+    const savedWeek = savedWeeks.find((week) => week.id === firstTrendWeek.id)!;
+
+    expect(savedWeek.avgStepsPerDay).toBe(10000);
+  });
 });
