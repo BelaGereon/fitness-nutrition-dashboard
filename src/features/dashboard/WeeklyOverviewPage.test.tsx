@@ -272,6 +272,20 @@ describe("WeeklyOverviewPage", () => {
     }
   });
 
+  it("persistence: initializes from WeeksStore.load when it returns weeks", async () => {
+    const storedWeeks = sampleWeeks.map((w) =>
+      w.id !== firstTrendWeek.id ? w : { ...w, avgStepsPerDay: 12345 }
+    );
+
+    const store = createStoreStub(storedWeeks);
+    const { user } = setup(store);
+
+    const details = await openWeek(user, firstTrendWeek);
+
+    expect(details.getByText(/avg steps:/i)).toHaveTextContent("12345");
+    expect(store.load).toHaveBeenCalledTimes(1);
+  });
+
   it("persistence: falls back to sampleWeeks when WeeksStore.load returns null", () => {
     const store = createStoreStub(null);
 
