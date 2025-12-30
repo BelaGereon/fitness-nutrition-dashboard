@@ -3,8 +3,13 @@ import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import { WeekCard } from "./WeekCard";
 import { type WeekEntry } from "../../domain/week";
+import type { WeeksStore } from "../../data/weeksStore";
 
-export function WeeklyOverviewPage() {
+export function WeeklyOverviewPage({
+  weeksStore,
+}: {
+  weeksStore?: WeeksStore;
+}) {
   const [weeks, setWeeks] = React.useState(sampleWeeks);
   const trend = computeTrendMetrics(weeks);
   const weeksById = new Map(weeks.map((week) => [week.id, week]));
