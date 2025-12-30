@@ -38,6 +38,7 @@ const createStoreStub = (loaded: WeekEntry[] | null): WeeksStore => ({
 
 beforeEach(() => {
   localStorage.clear();
+  vi.restoreAllMocks();
 });
 
 describe("WeeklyOverviewPage", () => {

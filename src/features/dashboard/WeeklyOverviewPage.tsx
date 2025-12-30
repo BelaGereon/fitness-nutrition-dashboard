@@ -2,15 +2,35 @@ import React from "react";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import { WeekCard } from "./WeekCard";
-import { type WeekEntry } from "../../domain/week";
+import { createLocalStorageWeeksStore } from "../../data/weeksStoreLocalStorage";
+
+import type { WeekEntry } from "../../domain/week";
 import type { WeeksStore } from "../../data/weeksStore";
 
-export function WeeklyOverviewPage({
-  weeksStore,
-}: {
+type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
-}) {
-  const [weeks, setWeeks] = React.useState(sampleWeeks);
+};
+
+export function WeeklyOverviewPage({ weeksStore }: WeeklyOverviewPageProps) {
+  const store = React.useMemo(
+    () => weeksStore ?? createLocalStorageWeeksStore(window.localStorage),
+    [weeksStore]
+  );
+
+  const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
+    return store.load() ?? sampleWeeks;
+  });
+
+  // Persist only after the user actually changes weeks (don’t auto-write on mount).
+  const didMountRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    store.save(weeks);
+  }, [weeks, store]);
+
   const trend = computeTrendMetrics(weeks);
   const weeksById = new Map(weeks.map((week) => [week.id, week]));
 
