@@ -20,6 +20,7 @@ import {
 } from "./util/testUtils";
 import type { WeeksStore } from "../../data/weeksStore";
 import type { WeekEntry } from "../../domain/week";
+import type { Mock } from "vitest";
 
 const sampleWeeksTrend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = sampleWeeksTrend;
@@ -313,7 +314,7 @@ describe("WeeklyOverviewPage", () => {
 
     expect(store.save).toHaveBeenCalledTimes(1);
 
-    const savedWeeks = (store.save as any).mock.calls[0][0] as WeekEntry[];
+    const savedWeeks = (store.save as Mock).mock.calls[0][0] as WeekEntry[];
     const savedWeek = savedWeeks.find((week) => week.id === firstTrendWeek.id)!;
 
     expect(savedWeek.avgStepsPerDay).toBe(10000);
