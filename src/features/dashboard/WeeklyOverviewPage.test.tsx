@@ -1,7 +1,7 @@
 import userEvent from "@testing-library/user-event";
 import { render, screen } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import {
@@ -18,15 +18,26 @@ import {
   weekToggleButton,
   weekDetails as weekDetailsElement,
 } from "./util/testUtils";
+import type { WeeksStore } from "../../data/weeksStore";
+import type { WeekEntry } from "../../domain/week";
 
 const trend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = trend;
 
-const setup = () => {
-  render(<WeeklyOverviewPage />);
+const setup = (weeksStore?: WeeksStore) => {
+  render(<WeeklyOverviewPage weeksStore={weeksStore} />);
   const user = userEvent.setup();
   return { user };
 };
+
+const createStoreStub = (loaded: WeekEntry[] | null): WeeksStore => ({
+  load: vi.fn(() => loaded),
+  save: vi.fn(),
+});
+
+beforeEach(() => {
+  localStorage.clear();
+});
 
 describe("WeeklyOverviewPage", () => {
   it("renders: one card per trend week", () => {
