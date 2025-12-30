@@ -21,8 +21,8 @@ import {
 import type { WeeksStore } from "../../data/weeksStore";
 import type { WeekEntry } from "../../domain/week";
 
-const trend = computeTrendMetrics(sampleWeeks);
-const [firstTrendWeek, secondTrendWeek] = trend;
+const sampleWeeksTrend = computeTrendMetrics(sampleWeeks);
+const [firstTrendWeek, secondTrendWeek] = sampleWeeksTrend;
 
 const setup = (weeksStore?: WeeksStore) => {
   render(<WeeklyOverviewPage weeksStore={weeksStore} />);
@@ -43,7 +43,7 @@ describe("WeeklyOverviewPage", () => {
   it("renders: one card per trend week", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
-      trend.length
+      sampleWeeksTrend.length
     );
   });
 
@@ -270,5 +270,15 @@ describe("WeeklyOverviewPage", () => {
         1
       );
     }
+  });
+
+  it("persistence: falls back to sampleWeeks when WeeksStore.load returns null", () => {
+    const store = createStoreStub(null);
+
+    setup(store);
+
+    expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
+      sampleWeeksTrend.length
+    );
   });
 });
