@@ -1,10 +1,11 @@
+import type React from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { WeekCard } from "./WeekCard";
 import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
-import { detailsTestIdForWeekId } from "./testUtils";
+import { detailsTestIdForWeekId } from "./util/testUtils";
 
 const base: WeekEntry = {
   id: "test-week",
@@ -39,33 +40,31 @@ const trend: WeekTrendMetrics = {
 type Props = React.ComponentProps<typeof WeekCard>;
 
 describe("WeekCard", () => {
-  const renderWeekCard = (overrides: Partial<Props> = {}) => {
+  const setup = (overrides: Partial<Props> = {}) => {
     const props: Props = {
       trend,
       base,
       isOpen: false,
       onToggle: vi.fn(),
-      onUpdateWeek: vi.fn(),
-      onUpdateDay: vi.fn(),
+      onSaveWeek: vi.fn(),
       ...overrides,
     };
 
     return { ...render(<WeekCard {...props} />), props };
   };
 
-  it("renders the week title as an accessible button so the card can be interacted with", () => {
-    renderWeekCard();
-
+  it("renders: week title as accessible button", () => {
+    setup();
     expect(
       screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
     ).toBeInTheDocument();
   });
 
-  it("calls onToggle when the week title button is clicked", async () => {
+  it("behavior: calls onToggle when title button is clicked", async () => {
     const user = userEvent.setup();
     const onToggle = vi.fn();
 
-    renderWeekCard({ onToggle });
+    setup({ onToggle });
 
     await user.click(
       screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
@@ -73,9 +72,9 @@ describe("WeekCard", () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it("renders details only when isOpen=true", () => {
+  it("renders: details only when isOpen=true", () => {
     const detailsId = detailsTestIdForWeekId(trend.id);
-    const { rerender, props } = renderWeekCard({ isOpen: false });
+    const { rerender, props } = setup({ isOpen: false });
 
     expect(screen.queryByTestId(detailsId)).not.toBeInTheDocument();
 
@@ -84,7 +83,7 @@ describe("WeekCard", () => {
     expect(screen.getByTestId(detailsId)).toBeInTheDocument();
   });
 
-  it("renders missing data as 'n/a'", () => {
+  describe("renders: missing data as 'n/a'", () => {
     const incompleteBase: WeekEntry = {
       id: "incomplete-week",
       weekOf: "2025-12-08",
@@ -115,31 +114,29 @@ describe("WeekCard", () => {
       weightChangeVsPrevPercent: undefined,
     };
 
-    renderWeekCard({
-      trend: incompleteTrend,
-      base: incompleteBase,
-      isOpen: true,
-    });
+    const labels = [
+      [/avg weight:/i],
+      [/min \/ max:/i],
+      [/avg calories:/i],
+      [/avg protein:/i],
+      [/avg protein per kg:/i],
+      [/avg steps:/i],
+      [/Δ weight vs prev:/i],
+    ] as const;
 
-    const details = screen.getByTestId(
-      detailsTestIdForWeekId(incompleteTrend.id)
-    );
+    it.each(labels)("renders: %s as n/a", (label) => {
+      setup({ trend: incompleteTrend, base: incompleteBase, isOpen: true });
 
-    const expectLineToContainNA = (label: RegExp) => {
+      const details = screen.getByTestId(
+        detailsTestIdForWeekId(incompleteTrend.id)
+      );
+
       expect(within(details).getByText(label)).toHaveTextContent(/n\/a/i);
-    };
-
-    expectLineToContainNA(/avg weight:/i);
-    expectLineToContainNA(/min \/ max:/i);
-    expectLineToContainNA(/avg calories:/i);
-    expectLineToContainNA(/avg protein:/i);
-    expectLineToContainNA(/avg protein per kg:/i);
-    expectLineToContainNA(/avg steps:/i);
-    expectLineToContainNA(/Δ weight vs prev:/i);
+    });
   });
 
-  it("reflects open state via aria-expanded", () => {
-    const { rerender, props } = renderWeekCard({ isOpen: false });
+  it("a11y: reflects open state via aria-expanded", () => {
+    const { rerender, props } = setup({ isOpen: false });
 
     const titleButton = screen.getByRole("button", {
       name: `Week of ${trend.weekOf}`,

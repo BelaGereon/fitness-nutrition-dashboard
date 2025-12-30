@@ -1,15 +1,15 @@
-import React from "react";
-import type { DayEntry, DayId, WeekEntry } from "../../domain/week";
+import type { WeekEntry } from "../../domain/week";
 import type { WeekTrendMetrics } from "../../domain/weekTrend";
 import { formatData } from "./util/format";
+import { WeekEntryGrid } from "./WeekEntryGrid";
+import { useWeekEditor } from "./weekEditor";
 
 type WeekCardProps = {
   trend: WeekTrendMetrics;
   base: WeekEntry;
   isOpen: boolean;
   onToggle: () => void;
-  onUpdateWeek: (patch: Partial<WeekEntry>) => void;
-  onUpdateDay: (dayId: DayId, patch: Partial<DayEntry>) => void;
+  onSaveWeek: (updatedWeek: WeekEntry) => void;
 };
 
 export function WeekCard({
@@ -17,8 +17,7 @@ export function WeekCard({
   base,
   isOpen,
   onToggle,
-  onUpdateWeek,
-  onUpdateDay,
+  onSaveWeek,
 }: WeekCardProps) {
   const {
     weekOf,
@@ -35,43 +34,16 @@ export function WeekCard({
 
   const detailsId = `week-card-${id}-details`;
 
-  const [isEditingMonWeight, setIsEditingMonWeight] = React.useState(false);
-  const [draftMonWeight, setDraftMonWeight] = React.useState<string>("");
-
-  React.useEffect(() => {
-    if (isEditingMonWeight) {
-      setDraftMonWeight(base.days.mon.weightKg?.toString() ?? "");
-    }
-  }, [isEditingMonWeight, base.days.mon.weightKg]);
-
-  const commitMonWeight = () => {
-    const trimmed = draftMonWeight.trim();
-    const parsed = trimmed === "" ? undefined : Number.parseFloat(trimmed);
-
-    if (parsed !== undefined && Number.isNaN(parsed)) return;
-
-    onUpdateDay("mon", { weightKg: parsed });
-    setIsEditingMonWeight(false);
-  };
-
-  const [isEditingSteps, setIsEditingSteps] = React.useState(false);
-  const [draftSteps, setDraftSteps] = React.useState<string>("");
-
-  React.useEffect(() => {
-    if (isEditingSteps) {
-      setDraftSteps(base.avgStepsPerDay?.toString() ?? "");
-    }
-  }, [isEditingSteps, base.avgStepsPerDay]);
-
-  const commitSteps = () => {
-    const trimmed = draftSteps.trim();
-    const parsed = trimmed === "" ? undefined : Number.parseInt(trimmed, 10);
-
-    if (parsed !== undefined && Number.isNaN(parsed)) return; // or show error
-
-    onUpdateWeek({ avgStepsPerDay: parsed });
-    setIsEditingSteps(false);
-  };
+  const {
+    isEditing,
+    draft,
+    hasValidationError,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+    setAvgStepsDraft,
+    updateDayDraft,
+  } = useWeekEditor({ base, isOpen, onSaveWeek });
 
   return (
     <li data-testid={`week-card-${id}`}>
@@ -88,6 +60,26 @@ export function WeekCard({
 
       {isOpen && (
         <div id={detailsId} data-testid={detailsId}>
+          {/* Controls at the top (matches your refactor) */}
+          {!isEditing ? (
+            <button type="button" onClick={startEdit}>
+              Edit
+            </button>
+          ) : (
+            <div>
+              <button type="button" onClick={saveEdit}>
+                Save
+              </button>
+              <button type="button" onClick={cancelEdit}>
+                Cancel
+              </button>
+            </div>
+          )}
+
+          {hasValidationError && (
+            <div role="alert">Please fix invalid inputs before saving.</div>
+          )}
+
           <div>
             Avg weight: {formatData(avgWeightKg, { decimals: 1, unit: "kg" })}
           </div>
@@ -106,32 +98,23 @@ export function WeekCard({
             Avg protein per kg:{" "}
             {formatData(avgProteinPerKg, { decimals: 2, unit: "g/kg" })}
           </div>
+
           <div>
-            Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}
-            {!isEditingSteps ? (
-              <>
-                <button type="button" onClick={() => setIsEditingSteps(true)}>
-                  Edit steps
-                </button>
-              </>
+            {!isEditing ? (
+              <>Avg steps: {formatData(base.avgStepsPerDay, { decimals: 0 })}</>
             ) : (
               <>
                 <label htmlFor={`${id}-avg-steps`}>Avg steps</label>
                 <input
                   id={`${id}-avg-steps`}
                   type="number"
-                  value={draftSteps}
-                  onChange={(e) => setDraftSteps(e.target.value)}
+                  value={draft.avgStepsPerDay}
+                  onChange={(e) => setAvgStepsDraft(e.target.value)}
                 />
-                <button type="button" onClick={commitSteps}>
-                  Save steps
-                </button>
-                <button type="button" onClick={() => setIsEditingSteps(false)}>
-                  Cancel
-                </button>
               </>
             )}
           </div>
+
           <div>
             Δ weight vs prev:{" "}
             {weightChangeVsPrevKg !== undefined &&
@@ -142,35 +125,12 @@ export function WeekCard({
               : "n/a"}
           </div>
 
-          <div>
-            Mon weight:{" "}
-            {formatData(base.days.mon.weightKg, { decimals: 1, unit: "kg" })}
-            {!isEditingMonWeight ? (
-              <button type="button" onClick={() => setIsEditingMonWeight(true)}>
-                Edit Monday weight
-              </button>
-            ) : (
-              <>
-                <label htmlFor={`${id}-mon-weight`}>Monday weight (kg)</label>
-                <input
-                  id={`${id}-mon-weight`}
-                  type="number"
-                  step="0.1"
-                  value={draftMonWeight}
-                  onChange={(e) => setDraftMonWeight(e.target.value)}
-                />
-                <button type="button" onClick={commitMonWeight}>
-                  Save Monday weight
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingMonWeight(false)}
-                >
-                  Cancel
-                </button>
-              </>
-            )}
-          </div>
+          <WeekEntryGrid
+            days={base.days}
+            isEditing={isEditing}
+            draftDays={draft.days}
+            onChangeDay={updateDayDraft}
+          />
         </div>
       )}
     </li>

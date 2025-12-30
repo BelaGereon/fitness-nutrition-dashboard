@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { type WeekEntry } from "./week";
 import { computeTrendMetrics } from "./weekTrend";
 
@@ -19,46 +19,54 @@ const makeWeekWithAvgWeight = (
   },
 });
 
+const setup = () => {
+  const week1 = makeWeekWithAvgWeight("2025-11-17", 80);
+  const week2 = makeWeekWithAvgWeight("2025-11-24", 78);
+  const week3 = makeWeekWithAvgWeight("2025-12-01", 79);
+  return { week1, week2, week3 };
+};
+
 describe("computeTrendMetrics", () => {
-  let week1: WeekEntry;
-  let week2: WeekEntry;
-  let week3: WeekEntry;
+  it("sorts: weeks by weekOf ascending", () => {
+    const { week1, week2, week3 } = setup();
+    const trends = computeTrendMetrics([week3, week1, week2]);
 
-  beforeEach(() => {
-    week1 = makeWeekWithAvgWeight("2025-11-17", 80);
-    week2 = makeWeekWithAvgWeight("2025-11-24", 78);
-    week3 = makeWeekWithAvgWeight("2025-12-01", 79);
+    expect(trends.map((t) => t.weekOf)).toEqual([
+      "2025-11-17",
+      "2025-11-24",
+      "2025-12-01",
+    ]);
   });
 
-  it("sorts weeks by weekOf date", () => {
-    const weeksOutOfOrder = [week3, week1, week2];
+  it.each([
+    ["2025-11-24", -2],
+    ["2025-12-01", 1],
+  ] as const)("computes: weightChangeVsPrevKg for %s", (weekOf, expected) => {
+    const { week1, week2, week3 } = setup();
+    const trends = computeTrendMetrics([week1, week2, week3]);
+    const byWeekOf = Object.fromEntries(trends.map((t) => [t.weekOf, t]));
 
-    const trends = computeTrendMetrics([...weeksOutOfOrder]);
-
-    expect(trends[0].weekOf).toBe("2025-11-17");
-    expect(trends[1].weekOf).toBe("2025-11-24");
-    expect(trends[2].weekOf).toBe("2025-12-01");
+    expect(byWeekOf[weekOf].weightChangeVsPrevKg).toEqual(expected);
   });
 
-  it("computes weight change vs previous week in kg", () => {
-    const weeks = [week1, week2, week3];
+  it.each([
+    ["2025-11-24", -2.5],
+    ["2025-12-01", 1.28],
+  ] as const)(
+    "computes: weightChangeVsPrevPercent for %s",
+    (weekOf, expected) => {
+      const { week1, week2, week3 } = setup();
+      const trends = computeTrendMetrics([week1, week2, week3]);
+      const byWeekOf = Object.fromEntries(trends.map((t) => [t.weekOf, t]));
 
-    const trends = computeTrendMetrics(weeks);
+      expect(byWeekOf[weekOf].weightChangeVsPrevPercent).toBeCloseTo(
+        expected,
+        weekOf === "2025-12-01" ? 2 : 1
+      );
+    }
+  );
 
-    expect(trends[1].weightChangeVsPrevKg).toEqual(-2);
-    expect(trends[2].weightChangeVsPrevKg).toEqual(1);
-  });
-
-  it("computes weight change vs previous week in percent", () => {
-    const weeks = [week1, week2, week3];
-
-    const trends = computeTrendMetrics(weeks);
-
-    expect(trends[1].weightChangeVsPrevPercent).toBeCloseTo(-2.5);
-    expect(trends[2].weightChangeVsPrevPercent).toBeCloseTo(1.28, 2);
-  });
-
-  it("handles weeks with no metric data without throwing", () => {
+  it("handles: weeks with no metric data without throwing", () => {
     const w1: WeekEntry = {
       id: "w1",
       weekOf: "2025-11-17",
@@ -72,9 +80,9 @@ describe("computeTrendMetrics", () => {
     expect(trends[1].weightChangeVsPrevKg).toBeUndefined();
   });
 
-  it("skips weeks without avgWeight when computing deltas", () => {
+  it("skips: weeks without avgWeight when computing deltas", () => {
     const week1 = makeWeekWithAvgWeight("2025-11-17", 80);
-    const weekMiss = {
+    const weekMiss: WeekEntry = {
       id: "w-miss",
       weekOf: "2025-11-24",
       days: { mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {} },
@@ -83,12 +91,14 @@ describe("computeTrendMetrics", () => {
 
     const trends = computeTrendMetrics([week1, weekMiss, week3]);
 
-    expect(trends[0].weightChangeVsPrevKg).toBeUndefined();
-    expect(trends[1].weightChangeVsPrevKg).toBeUndefined();
-    expect(trends[2].weightChangeVsPrevKg).toBe(-1); // or -1.00 depending on rounding
+    expect(trends.map((t) => t.weightChangeVsPrevKg)).toEqual([
+      undefined,
+      undefined,
+      -1,
+    ]);
   });
 
-  it("handles weeks with no weight data at all", () => {
+  it("handles: weeks with no weight data at all", () => {
     const w1: WeekEntry = {
       id: "w1",
       weekOf: "2025-11-17",
@@ -107,8 +117,10 @@ describe("computeTrendMetrics", () => {
 
     const trends = computeTrendMetrics([w1, w2, w3]);
 
-    expect(trends[0].avgWeightKg).toBeUndefined();
-    expect(trends[1].avgWeightKg).toBeUndefined();
-    expect(trends[2].avgWeightKg).toBeUndefined();
+    expect(trends.map((t) => t.avgWeightKg)).toEqual([
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 });

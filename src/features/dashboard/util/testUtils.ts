@@ -1,7 +1,6 @@
-// testUtils.ts
 import userEvent from "@testing-library/user-event";
 import { screen, within } from "@testing-library/react";
-import type { WeekTrendMetrics } from "../../domain/weekTrend";
+import type { WeekTrendMetrics } from "../../../domain/weekTrend";
 
 export type User = ReturnType<typeof userEvent.setup>;
 export type Scope = ReturnType<typeof within>;
@@ -41,35 +40,30 @@ export const numberOf = (scope: Scope, label: RegExp) =>
 type DraftNumberFieldArgs = {
   user: User;
   scope: Scope;
-  editButtonName: string | RegExp;
   inputName: string | RegExp;
   value: string;
 };
 
-export const setDraftNumberField = async ({
+export const setNumberField = async ({
   user,
   scope,
-  editButtonName,
   inputName,
   value,
 }: DraftNumberFieldArgs) => {
-  await user.click(scope.getByRole("button", { name: editButtonName }));
-
   const input = scope.getByRole("spinbutton", { name: inputName });
   await user.clear(input);
 
-  // If value is "", leave the input empty (used for "save undefined" cases)
   if (value !== "") {
     await user.type(input, value);
   }
 };
 
-export const saveEdit = async (
-  user: User,
-  scope: Scope,
-  saveButtonName: string | RegExp
-) => {
-  await user.click(scope.getByRole("button", { name: saveButtonName }));
+export const enterEditMode = async (user: User, scope: Scope) => {
+  await user.click(scope.getByRole("button", { name: /^edit$/i }));
+};
+
+export const saveEdit = async (user: User, scope: Scope) => {
+  await user.click(scope.getByRole("button", { name: /^save$/i }));
 };
 
 export const cancelEdit = async (
@@ -79,3 +73,8 @@ export const cancelEdit = async (
 ) => {
   await user.click(scope.getByRole("button", { name: cancelButtonName }));
 };
+
+export const gridCell = (
+  scope: Scope,
+  args: { dayId: string; metric: "weight" | "calories" | "protein" }
+) => scope.getByTestId(`cell-${args.dayId}-${args.metric}`);
