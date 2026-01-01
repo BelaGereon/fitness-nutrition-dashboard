@@ -21,7 +21,6 @@ export function WeeklyOverviewPage({ weeksStore }: WeeklyOverviewPageProps) {
     return store.load() ?? sampleWeeks;
   });
 
-  // Persist only after the user actually changes weeks (don’t auto-write on mount).
   const didMountRef = React.useRef(false);
   React.useEffect(() => {
     if (!didMountRef.current) {
