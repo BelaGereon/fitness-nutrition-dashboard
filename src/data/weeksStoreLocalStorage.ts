@@ -1,4 +1,3 @@
-// src/data/weeksStoreLocalStorage.ts
 import {
   DAY_IDS,
   type DayId,
@@ -9,8 +8,8 @@ import type { WeeksStore } from "./weeksStore";
 
 export const WEEKS_STORAGE_KEY = "fitness-dashboard.weeks.v1";
 
-type PersistedWeeksV1 = {
-  version: 1;
+type PersistedWeeks = {
+  version: number;
   weeks: unknown;
 };
 
@@ -55,11 +54,10 @@ const isWeekEntry = (v: unknown): v is WeekEntry => {
 };
 
 const extractWeeksArray = (parsed: unknown): unknown[] | null => {
-  // Support both legacy array format and versioned payload
   if (Array.isArray(parsed)) return parsed;
 
-  if (isObject(parsed) && (parsed as PersistedWeeksV1).version === 1) {
-    const weeks = (parsed as PersistedWeeksV1).weeks;
+  if (isObject(parsed) && (parsed as PersistedWeeks).version === 1) {
+    const weeks = (parsed as PersistedWeeks).weeks;
     return Array.isArray(weeks) ? weeks : null;
   }
 
@@ -70,17 +68,17 @@ export function createLocalStorageWeeksStore(storage: Storage): WeeksStore {
   return {
     load(): WeekEntry[] | null {
       try {
-        const raw = storage.getItem(WEEKS_STORAGE_KEY);
-        if (!raw) return null;
+        const storedWeeks = storage.getItem(WEEKS_STORAGE_KEY);
+        if (!storedWeeks) return null;
 
-        const parsed: unknown = JSON.parse(raw);
-        const arr = extractWeeksArray(parsed);
-        if (!arr) return null;
+        const parsed: unknown = JSON.parse(storedWeeks);
+        const extractedWeeks = extractWeeksArray(parsed);
+        if (!extractedWeeks) return null;
 
-        // Strict: if any entry is invalid, ignore everything
-        if (!arr.every(isWeekEntry)) return null;
+        const allEntriesAreValid = extractedWeeks.every(isWeekEntry);
+        if (!allEntriesAreValid) return null;
 
-        return arr;
+        return extractedWeeks;
       } catch {
         return null;
       }
@@ -88,10 +86,10 @@ export function createLocalStorageWeeksStore(storage: Storage): WeeksStore {
 
     save(weeks: WeekEntry[]): void {
       try {
-        const payload: PersistedWeeksV1 = { version: 1, weeks };
+        const payload: PersistedWeeks = { version: 1, weeks };
         storage.setItem(WEEKS_STORAGE_KEY, JSON.stringify(payload));
       } catch {
-        // Ignore quota/privacy errors for MVP
+        throw new Error("Could not store weeks");
       }
     },
   };
