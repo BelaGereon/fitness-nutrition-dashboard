@@ -12,12 +12,18 @@ import {
 } from "../../domain/week";
 import type { WeeksStore } from "../../data/weeksStore";
 
+import type { WeeksExportService } from "../../data/weeksExport";
+import {
+  createBrowserFileDownloader,
+  createJsonWeeksExportFormatter,
+  createWeeksExportService,
+} from "../../data/weeksExport";
+
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
-  /** injectable for tests */
   getNow?: () => Date;
-  /** injectable for tests */
   createWeekId?: () => string;
+  weeksExportService?: WeeksExportService;
 };
 
 const toISODate = (d: Date): string => {
@@ -80,11 +86,24 @@ export function WeeklyOverviewPage({
   weeksStore,
   getNow = () => new Date(),
   createWeekId = defaultCreateWeekId,
+  weeksExportService,
 }: WeeklyOverviewPageProps) {
   const store = React.useMemo(
     () => weeksStore ?? createLocalStorageWeeksStore(window.localStorage),
     [weeksStore]
   );
+
+  const exportService = React.useMemo(() => {
+    if (weeksExportService) return weeksExportService;
+
+    return createWeeksExportService({
+      formatter: createJsonWeeksExportFormatter(),
+      downloader: createBrowserFileDownloader({
+        document: window.document,
+        url: window.URL,
+      }),
+    });
+  }, [weeksExportService]);
 
   const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
     return store.load() ?? sampleWeeks;
@@ -211,6 +230,13 @@ export function WeeklyOverviewPage({
           </div>
         )}
       </section>
+
+      <button
+        type="button"
+        onClick={() => exportService.exportWeeks(weeks, getNow())}
+      >
+        Export data
+      </button>
 
       <ul>
         {trend.map((week) => {

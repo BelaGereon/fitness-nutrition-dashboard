@@ -21,13 +21,18 @@ import {
 import type { WeeksStore } from "../../data/weeksStore";
 import type { WeekEntry } from "../../domain/week";
 import type { Mock } from "vitest";
+import type { WeeksExportService } from "../../data/weeksExport";
 
 const sampleWeeksTrend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = sampleWeeksTrend;
 
 const setup = (
   weeksStore?: WeeksStore,
-  opts?: { now?: Date; createWeekId?: () => string }
+  opts?: {
+    now?: Date;
+    createWeekId?: () => string;
+    exportService?: WeeksExportService;
+  }
 ) => {
   const getNow = opts?.now ? () => opts.now as Date : undefined;
 
@@ -36,6 +41,7 @@ const setup = (
       weeksStore={weeksStore}
       getNow={getNow}
       createWeekId={opts?.createWeekId}
+      weeksExportService={opts?.exportService}
     />
   );
 
@@ -437,5 +443,22 @@ describe("WeeklyOverviewPage", () => {
     expect(screen.queryByTestId("add-week-form")).not.toBeInTheDocument();
     // no persistence call because no change was made
     expect(store.save).toHaveBeenCalledTimes(0);
+  });
+
+  it("export data: calls export service with current weeks and now", async () => {
+    const store = createStoreStub(sampleWeeks);
+    const exportService = { exportWeeks: vi.fn() };
+
+    const now = new Date("2026-01-07T10:00:00.000Z");
+    const { user } = setup(store, { now, exportService });
+
+    await user.click(screen.getByRole("button", { name: /export data/i }));
+
+    expect(exportService.exportWeeks).toHaveBeenCalledTimes(1);
+    const [weeksArg, nowArg] = exportService.exportWeeks.mock.calls[0];
+
+    // weeks passed are whatever the page currently holds (loaded from store)
+    expect(Array.isArray(weeksArg)).toBe(true);
+    expect(nowArg).toEqual(now);
   });
 });
