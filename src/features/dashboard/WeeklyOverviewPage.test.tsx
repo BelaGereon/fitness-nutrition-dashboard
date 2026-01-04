@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { WeeklyOverviewPage } from "./WeeklyOverviewPage";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
@@ -25,8 +25,20 @@ import type { Mock } from "vitest";
 const sampleWeeksTrend = computeTrendMetrics(sampleWeeks);
 const [firstTrendWeek, secondTrendWeek] = sampleWeeksTrend;
 
-const setup = (weeksStore?: WeeksStore) => {
-  render(<WeeklyOverviewPage weeksStore={weeksStore} />);
+const setup = (
+  weeksStore?: WeeksStore,
+  opts?: { now?: Date; createWeekId?: () => string }
+) => {
+  const getNow = opts?.now ? () => opts.now as Date : undefined;
+
+  render(
+    <WeeklyOverviewPage
+      weeksStore={weeksStore}
+      getNow={getNow}
+      createWeekId={opts?.createWeekId}
+    />
+  );
+
   const user = userEvent.setup();
   return { user };
 };
@@ -319,5 +331,111 @@ describe("WeeklyOverviewPage", () => {
     const savedWeek = savedWeeks.find((week) => week.id === firstTrendWeek.id)!;
 
     expect(savedWeek.avgStepsPerDay).toBe(10000);
+  });
+
+  it("add week: creates the current week immediately if it does not exist yet", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store, {
+      now: new Date("2026-01-07T10:00:00"), // Wed -> Monday is 2026-01-05
+      createWeekId: () => "new-week-id",
+    });
+
+    await user.click(screen.getByRole("button", { name: /add week/i }));
+
+    expect(
+      screen.getByRole("button", { name: "Week of 2026-01-05" })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByTestId("week-card-new-week-id-details")
+    ).toBeInTheDocument();
+
+    await waitFor(() => expect(store.save).toHaveBeenCalledTimes(1));
+  });
+
+  it("add week: opens a picker when the current week already exists", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store, {
+      now: new Date("2025-12-03T10:00:00"), // within the weekOf=2025-12-01
+    });
+
+    await user.click(screen.getByRole("button", { name: /add week/i }));
+
+    const form = screen.getByTestId("add-week-form");
+    expect(within(form).getByLabelText(/week to add/i)).toBeInTheDocument();
+    expect(
+      within(form).getByRole("button", { name: /create/i })
+    ).toBeInTheDocument();
+    expect(
+      within(form).getByRole("button", { name: /cancel/i })
+    ).toBeInTheDocument();
+  });
+
+  it("add week: rejects selecting a date that belongs to an existing week", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store, {
+      now: new Date("2025-12-03T10:00:00"),
+    });
+
+    await user.click(screen.getByRole("button", { name: /add week/i }));
+    const form = screen.getByTestId("add-week-form");
+    const scope = within(form);
+
+    // Pick any day inside the existing current week; it will normalize to Monday 2025-12-01.
+    const input = scope.getByLabelText(/week to add/i);
+    await user.clear(input);
+    await user.type(input, "2025-12-04");
+
+    await user.click(scope.getByRole("button", { name: /create/i }));
+
+    expect(scope.getByRole("alert")).toHaveTextContent(/already exists/i);
+  });
+
+  it("add week: allows selecting a different week and adds it (normalized to Monday)", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store, {
+      now: new Date("2025-12-03T10:00:00"),
+      createWeekId: () => "new-week-id",
+    });
+
+    await user.click(screen.getByRole("button", { name: /add week/i }));
+    const form = screen.getByTestId("add-week-form");
+    const scope = within(form);
+
+    const input = scope.getByLabelText(/week to add/i);
+    await user.clear(input);
+    await user.type(input, "2026-01-07"); // Wed -> Monday is 2026-01-05
+
+    await user.click(scope.getByRole("button", { name: /create/i }));
+
+    expect(screen.queryByTestId("add-week-form")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Week of 2026-01-05" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("week-card-new-week-id-details")
+    ).toBeInTheDocument();
+  });
+
+  it("add week: cancel closes the picker without adding anything", async () => {
+    const store = createStoreStub(sampleWeeks);
+
+    const { user } = setup(store, {
+      now: new Date("2025-12-03T10:00:00"),
+    });
+
+    await user.click(screen.getByRole("button", { name: /add week/i }));
+    const form = screen.getByTestId("add-week-form");
+    const scope = within(form);
+
+    await user.click(scope.getByRole("button", { name: /cancel/i }));
+
+    expect(screen.queryByTestId("add-week-form")).not.toBeInTheDocument();
+    // no persistence call because no change was made
+    expect(store.save).toHaveBeenCalledTimes(0);
   });
 });
