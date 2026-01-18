@@ -42,6 +42,10 @@ export function WeekCard({
     cancelEdit,
     saveEdit,
     setAvgStepsDraft,
+    setTrainingSessionsDescriptionDraft,
+    setTotalSetsDraft,
+    setTotalVolumeKgDraft,
+    setNotesDraft,
     updateDayDraft,
   } = useWeekEditor({ base, isOpen, onSaveWeek });
 
@@ -123,6 +127,71 @@ export function WeekCard({
                   1
                 )} kg (${weightChangeVsPrevPercent.toFixed(1)}%)`
               : "n/a"}
+          </div>
+
+          <div>
+            {!isEditing ? (
+              <>
+                <div>
+                  Training:{" "}
+                  {base.trainingSessionsDescription?.trim()
+                    ? base.trainingSessionsDescription
+                    : "n/a"}
+                </div>
+                <div>Sets: {formatData(base.totalSets, { decimals: 0 })}</div>
+                <div>
+                  Volume:{" "}
+                  {formatData(base.totalVolumeKg, { decimals: 1, unit: "kg" })}
+                </div>
+                <div>Notes: {base.notes?.trim() ? base.notes : "n/a"}</div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label htmlFor={`${id}-training-desc`}>Training</label>
+                  <textarea
+                    id={`${id}-training-desc`}
+                    value={draft.trainingSessionsDescription}
+                    onChange={(e) =>
+                      setTrainingSessionsDescriptionDraft(e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`${id}-total-sets`}>Total sets</label>
+                  <input
+                    id={`${id}-total-sets`}
+                    type="number"
+                    step="1"
+                    value={draft.totalSets}
+                    onChange={(e) => setTotalSetsDraft(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`${id}-total-volume`}>
+                    Total volume (kg)
+                  </label>
+                  <input
+                    id={`${id}-total-volume`}
+                    type="number"
+                    step="0.1"
+                    value={draft.totalVolumeKg}
+                    onChange={(e) => setTotalVolumeKgDraft(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor={`${id}-notes`}>Notes</label>
+                  <textarea
+                    id={`${id}-notes`}
+                    value={draft.notes}
+                    onChange={(e) => setNotesDraft(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <WeekEntryGrid

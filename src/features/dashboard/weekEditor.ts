@@ -11,6 +11,10 @@ export type DraftDays = Record<DayId, DraftDayEntry>;
 
 export type DraftWeek = {
   avgStepsPerDay: string;
+  trainingSessionsDescription: string;
+  totalSets: string;
+  totalVolumeKg: string;
+  notes: string;
   days: DraftDays;
 };
 
@@ -38,6 +42,10 @@ export const toDraftWeek = (base: WeekEntry): DraftWeek => {
 
   return {
     avgStepsPerDay: base.avgStepsPerDay?.toString() ?? "",
+    trainingSessionsDescription: base.trainingSessionsDescription ?? "",
+    totalSets: base.totalSets?.toString() ?? "",
+    totalVolumeKg: base.totalVolumeKg?.toString() ?? "",
+    notes: base.notes ?? "",
     days: draftDays,
   };
 };
@@ -81,12 +89,44 @@ const parseOptionalNonNegativeFloatWeight = (
   return parsed;
 };
 
+const parseOptionalText = (raw: string): string | undefined => {
+  const trimmed = raw.trim();
+  if (trimmed === "") return undefined;
+  return raw; // keep original (don’t destroy line breaks/spacing)
+};
+
+const parseOptionalNonNegativeFloat = (
+  raw: string
+): number | undefined | "invalid" => {
+  const normalized = normalizeWeightInput(raw);
+  if (normalized === "invalid") return "invalid";
+  if (normalized === "") return undefined;
+
+  if (!FLOAT_PATTERN.test(normalized)) return "invalid";
+
+  const parsed = Number.parseFloat(normalized);
+  if (Number.isNaN(parsed)) return "invalid";
+  if (parsed < 0) return "invalid";
+  return parsed;
+};
+
 export const fromDraftWeek = (
   base: WeekEntry,
   draft: DraftWeek
 ): WeekEntry | null => {
   const avgStepsPerDay = parseOptionalNonNegativeInt(draft.avgStepsPerDay);
   if (avgStepsPerDay === "invalid") return null;
+
+  const totalSets = parseOptionalNonNegativeInt(draft.totalSets);
+  if (totalSets === "invalid") return null;
+
+  const totalVolumeKg = parseOptionalNonNegativeFloat(draft.totalVolumeKg);
+  if (totalVolumeKg === "invalid") return null;
+
+  const trainingSessionsDescription = parseOptionalText(
+    draft.trainingSessionsDescription
+  );
+  const notes = parseOptionalText(draft.notes);
 
   const nextDays: WeekEntry["days"] = { ...base.days };
 
@@ -116,6 +156,10 @@ export const fromDraftWeek = (
   return {
     ...base,
     avgStepsPerDay,
+    trainingSessionsDescription,
+    totalSets,
+    totalVolumeKg,
+    notes,
     days: nextDays,
   };
 };
@@ -180,6 +224,25 @@ export function useWeekEditor(args: {
     []
   );
 
+  const setTrainingSessionsDescriptionDraft = React.useCallback(
+    (value: string) => {
+      setDraft((prev) => ({ ...prev, trainingSessionsDescription: value }));
+    },
+    []
+  );
+
+  const setTotalSetsDraft = React.useCallback((value: string) => {
+    setDraft((prev) => ({ ...prev, totalSets: value }));
+  }, []);
+
+  const setTotalVolumeKgDraft = React.useCallback((value: string) => {
+    setDraft((prev) => ({ ...prev, totalVolumeKg: value }));
+  }, []);
+
+  const setNotesDraft = React.useCallback((value: string) => {
+    setDraft((prev) => ({ ...prev, notes: value }));
+  }, []);
+
   return {
     isEditing,
     draft,
@@ -188,6 +251,10 @@ export function useWeekEditor(args: {
     cancelEdit,
     saveEdit,
     setAvgStepsDraft,
+    setTrainingSessionsDescriptionDraft,
+    setTotalSetsDraft,
+    setTotalVolumeKgDraft,
+    setNotesDraft,
     updateDayDraft,
   };
 }

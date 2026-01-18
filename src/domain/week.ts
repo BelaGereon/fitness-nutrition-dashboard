@@ -1,4 +1,3 @@
-// src/domain/week.ts
 export type DayId = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 export interface DayEntry {
