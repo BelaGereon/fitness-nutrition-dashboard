@@ -19,10 +19,10 @@ import {
   createWeeksExportService,
 } from "../../data/weeksExport";
 import {
-  addDaysISO,
-  firstMissingWeekOf,
+  addDaysToISODate,
+  findNextUntrackedWeek,
   mondayOfWeek,
-  normalizeWeekOf,
+  getMondayOfWeek,
 } from "./util/dateHelpers";
 
 type WeeklyOverviewPageProps = {
@@ -108,7 +108,7 @@ export function WeeklyOverviewPage({
 
   const addWeek = React.useCallback(
     (weekOf: string) => {
-      const normalized = normalizeWeekOf(weekOf);
+      const normalized = getMondayOfWeek(weekOf);
 
       if (existingWeekOfs.has(normalized)) {
         setAddError(`Week already exists for ${normalized}`);
@@ -139,8 +139,8 @@ export function WeeklyOverviewPage({
     }
 
     // Otherwise, open a picker to add a different week.
-    const suggested = firstMissingWeekOf({
-      startWeekOf: addDaysISO(currentWeekOf, 7),
+    const suggested = findNextUntrackedWeek({
+      startWeekOf: addDaysToISODate(currentWeekOf, 7),
       existingWeekOfs,
     });
 
