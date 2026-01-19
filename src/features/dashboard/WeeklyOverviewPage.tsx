@@ -24,6 +24,7 @@ import {
   mondayOfWeek,
   getMondayOfWeek,
 } from "./util/dateHelpers";
+import { AddWeekSection } from "./AddWeekSection";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
@@ -158,42 +159,15 @@ export function WeeklyOverviewPage({
     <main>
       <h1>Weekly Fitness Overview</h1>
 
-      <section aria-label="Add week section">
-        <button type="button" onClick={onClickAddWeek}>
-          Add week
-        </button>
-
-        {isAddOpen && (
-          <div data-testid="add-week-form">
-            <h2>Add a new week</h2>
-
-            {addError && <div role="alert">{addError}</div>}
-
-            <label htmlFor="add-week-date">
-              Week to add
-              <input
-                id="add-week-date"
-                type="date"
-                value={addWeekDate}
-                onChange={(e) => setAddWeekDate(e.target.value)}
-              />
-            </label>
-
-            <div>
-              <button
-                type="button"
-                onClick={() => addWeek(addWeekDate)}
-                disabled={addWeekDate.trim() === ""}
-              >
-                Create
-              </button>
-              <button type="button" onClick={cancelAdd}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
+      <AddWeekSection
+        isOpen={isAddOpen}
+        selectedWeekDate={addWeekDate}
+        error={addError}
+        onOpen={onClickAddWeek}
+        onDateChange={setAddWeekDate}
+        onCreate={() => addWeek(addWeekDate)}
+        onCancel={cancelAdd}
+      />
 
       <button
         type="button"
