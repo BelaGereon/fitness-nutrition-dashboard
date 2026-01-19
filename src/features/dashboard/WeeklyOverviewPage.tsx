@@ -90,7 +90,7 @@ export function WeeklyOverviewPage({
 }: WeeklyOverviewPageProps) {
   const store = React.useMemo(
     () => weeksStore ?? createLocalStorageWeeksStore(window.localStorage),
-    [weeksStore]
+    [weeksStore],
   );
 
   const exportService = React.useMemo(() => {
@@ -129,7 +129,7 @@ export function WeeklyOverviewPage({
 
   const existingWeekOfs = React.useMemo(
     () => new Set(weeks.map((w) => w.weekOf)),
-    [weeks]
+    [weeks],
   );
 
   const toggleWeek = (id: string) => {
@@ -138,7 +138,7 @@ export function WeeklyOverviewPage({
 
   const saveWeek = (updatedWeek: WeekEntry) => {
     setWeeks((weeks) =>
-      weeks.map((week) => (week.id === updatedWeek.id ? updatedWeek : week))
+      weeks.map((week) => (week.id === updatedWeek.id ? updatedWeek : week)),
     );
   };
 
@@ -162,7 +162,7 @@ export function WeeklyOverviewPage({
       setIsAddOpen(false);
       setAddError(null);
     },
-    [createWeekId, existingWeekOfs]
+    [createWeekId, existingWeekOfs],
   );
 
   const onClickAddWeek = () => {
