@@ -48,7 +48,7 @@ const defaultCreateWeekId = () => {
 
 export function WeeklyOverviewPage({
   weeksStore,
-  getNow = () => new Date(),
+  getNow: getTodaysDate = () => new Date(),
   createWeekId = defaultCreateWeekId,
   weeksExportService,
 }: WeeklyOverviewPageProps) {
@@ -130,7 +130,7 @@ export function WeeklyOverviewPage({
   );
 
   const onClickAddWeek = () => {
-    const currentWeekOf = mondayOfWeek(getNow());
+    const currentWeekOf = mondayOfWeek(getTodaysDate());
 
     // Fast path: if current week isn't present yet, create it immediately.
     if (!existingWeekOfs.has(currentWeekOf)) {
@@ -197,7 +197,7 @@ export function WeeklyOverviewPage({
 
       <button
         type="button"
-        onClick={() => exportService.exportWeeks(weeks, getNow())}
+        onClick={() => exportService.exportWeeks(weeks, getTodaysDate())}
       >
         Export data
       </button>
