@@ -3,7 +3,6 @@ import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import { WeekCard } from "./WeekCard";
 import { createLocalStorageWeeksStore } from "../../data/weeksStoreLocalStorage";
-
 import {
   DAY_IDS,
   type DayEntry,
@@ -18,17 +17,12 @@ import {
   createJsonWeeksExportFormatter,
   createWeeksExportService,
 } from "../../data/weeksExport";
-import {
-  addDaysToISODate,
-  findNextUntrackedWeek,
-  mondayOfWeek,
-  getMondayOfWeek,
-} from "./util/dateHelpers";
+import { getMondayOfWeek } from "./util/dateHelpers";
 import { AddWeekSection } from "./AddWeekSection";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
-  getNow?: () => Date;
+  getTodaysDate?: () => Date;
   createWeekId?: () => string;
   weeksExportService?: WeeksExportService;
 };
@@ -49,7 +43,7 @@ const defaultCreateWeekId = () => {
 
 export function WeeklyOverviewPage({
   weeksStore,
-  getNow: getTodaysDate = () => new Date(),
+  getTodaysDate = () => new Date(),
   createWeekId = defaultCreateWeekId,
   weeksExportService,
 }: WeeklyOverviewPageProps) {
@@ -88,10 +82,6 @@ export function WeeklyOverviewPage({
 
   const [openWeekId, setOpenWeekId] = React.useState<string | null>(null);
 
-  const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [addWeekDate, setAddWeekDate] = React.useState("");
-  const [addError, setAddError] = React.useState<string | null>(null);
-
   const existingWeekOfs = React.useMemo(
     () => new Set(weeks.map((w) => w.weekOf)),
     [weeks],
@@ -107,13 +97,15 @@ export function WeeklyOverviewPage({
     );
   };
 
-  const addWeek = React.useCallback(
+  const tryAddWeek = React.useCallback(
     (weekOf: string) => {
       const normalized = getMondayOfWeek(weekOf);
 
       if (existingWeekOfs.has(normalized)) {
-        setAddError(`Week already exists for ${normalized}`);
-        return;
+        return {
+          ok: false as const,
+          error: `Week already exists for ${normalized}`,
+        };
       }
 
       const newWeek: WeekEntry = {
@@ -124,49 +116,20 @@ export function WeeklyOverviewPage({
 
       setWeeks((prev) => [...prev, newWeek]);
       setOpenWeekId(newWeek.id);
-      setIsAddOpen(false);
-      setAddError(null);
+
+      return { ok: true as const };
     },
     [createWeekId, existingWeekOfs],
   );
-
-  const onClickAddWeek = () => {
-    const currentWeekOf = mondayOfWeek(getTodaysDate());
-
-    // Fast path: if current week isn't present yet, create it immediately.
-    if (!existingWeekOfs.has(currentWeekOf)) {
-      addWeek(currentWeekOf);
-      return;
-    }
-
-    // Otherwise, open a picker to add a different week.
-    const suggested = findNextUntrackedWeek({
-      startWeekOf: addDaysToISODate(currentWeekOf, 7),
-      existingWeekOfs,
-    });
-
-    setAddWeekDate(suggested);
-    setAddError(null);
-    setIsAddOpen(true);
-  };
-
-  const cancelAdd = () => {
-    setIsAddOpen(false);
-    setAddError(null);
-  };
 
   return (
     <main>
       <h1>Weekly Fitness Overview</h1>
 
       <AddWeekSection
-        isOpen={isAddOpen}
-        selectedWeekDate={addWeekDate}
-        error={addError}
-        onOpen={onClickAddWeek}
-        onDateChange={setAddWeekDate}
-        onCreate={() => addWeek(addWeekDate)}
-        onCancel={cancelAdd}
+        existingWeekOfs={existingWeekOfs}
+        getTodaysDate={getTodaysDate}
+        onAddWeek={tryAddWeek}
       />
 
       <button
