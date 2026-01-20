@@ -19,6 +19,7 @@ import {
 } from "../../data/weeksExport";
 import { getMondayOfWeek } from "./util/dateHelpers";
 import { AddWeekSection } from "./AddWeekSection";
+import { usePersistedWeeks } from "./hooks/userPersistedWeeks";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
@@ -64,18 +65,10 @@ export function WeeklyOverviewPage({
     });
   }, [weeksExportService]);
 
-  const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
-    return store.load() ?? sampleWeeks;
+  const { weeks, setWeeks } = usePersistedWeeks({
+    store,
+    fallback: sampleWeeks,
   });
-
-  const didMountRef = React.useRef(false);
-  React.useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-    store.save(weeks);
-  }, [weeks, store]);
 
   const trend = computeTrendMetrics(weeks);
   const weeksById = new Map(weeks.map((week) => [week.id, week]));
