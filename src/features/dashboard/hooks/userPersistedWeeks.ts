@@ -2,14 +2,21 @@ import React from "react";
 import type { WeeksStore } from "../../../data/weeksStore";
 import type { WeekEntry } from "../../../domain/week";
 
-export function usePersistedWeeks(args: {
+type UserPersistedWeeksArgs = {
   store: WeeksStore;
   fallback: WeekEntry[];
-}) {
-  const { store, fallback } = args;
+};
 
+const loadFromStoreOrFallback = (
+  store: WeeksStore,
+  fallback: WeekEntry[],
+): WeekEntry[] => {
+  return store.load() ?? fallback;
+};
+
+export function usePersistedWeeks({ store, fallback }: UserPersistedWeeksArgs) {
   const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
-    return store.load() ?? fallback;
+    return loadFromStoreOrFallback(store, fallback);
   });
 
   const didMountRef = React.useRef(false);
