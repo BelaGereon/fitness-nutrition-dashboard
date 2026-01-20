@@ -8,14 +8,12 @@ import {
 type AddWeekSectionProps = {
   existingWeekOfs: Set<string>;
   getTodaysDate: () => Date;
-
-  // Parent remains the single authority for "can we add this week?"
   onAddWeek: (weekOfISO: string) => { ok: true } | { ok: false; error: string };
 };
 
 export function AddWeekSection({
   existingWeekOfs,
-  getTodaysDate: getNow,
+  getTodaysDate,
   onAddWeek,
 }: AddWeekSectionProps) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -23,7 +21,7 @@ export function AddWeekSection({
   const [error, setError] = React.useState<string | null>(null);
 
   const open = () => {
-    const currentWeekOf = mondayOfWeek(getNow());
+    const currentWeekOf = mondayOfWeek(getTodaysDate());
 
     // Fast path: if current week isn't present yet, create it immediately.
     if (!existingWeekOfs.has(currentWeekOf)) {
