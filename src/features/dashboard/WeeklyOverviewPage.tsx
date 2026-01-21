@@ -112,7 +112,7 @@ export function WeeklyOverviewPage({
 
       return { ok: true as const };
     },
-    [createWeekId, existingWeekOfs],
+    [createWeekId, existingWeekOfs, setWeeks],
   );
 
   return (

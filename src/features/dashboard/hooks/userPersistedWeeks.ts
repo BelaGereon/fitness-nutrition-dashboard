@@ -2,31 +2,39 @@ import React from "react";
 import type { WeeksStore } from "../../../data/weeksStore";
 import type { WeekEntry } from "../../../domain/week";
 
-type UserPersistedWeeksArgs = {
+type UsePersistedWeeksArgs = {
   store: WeeksStore;
   fallback: WeekEntry[];
 };
 
-const loadFromStoreOrFallback = (
-  store: WeeksStore,
-  fallback: WeekEntry[],
-): WeekEntry[] => {
-  return store.load() ?? fallback;
-};
+const loadFromStoreOrFallback = (store: WeeksStore, fallback: WeekEntry[]) =>
+  store.load() ?? fallback;
 
-export function usePersistedWeeks({ store, fallback }: UserPersistedWeeksArgs) {
-  const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
-    return loadFromStoreOrFallback(store, fallback);
-  });
+// Hook = allowed to call useState
+function useWeeksLoadedOnMount(store: WeeksStore, fallback: WeekEntry[]) {
+  return React.useState<WeekEntry[]>(() =>
+    loadFromStoreOrFallback(store, fallback),
+  );
+}
 
-  const didMountRef = React.useRef(false);
+// Hook = allowed to call useRef/useEffect
+function useSaveWeeksOnChange(store: WeeksStore, weeks: WeekEntry[]) {
+  const hasRenderedOnceRef = React.useRef(false);
+
   React.useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
+    // skip initial mount (so we don't save immediately after load)
+    if (!hasRenderedOnceRef.current) {
+      hasRenderedOnceRef.current = true;
       return;
     }
+
     store.save(weeks);
-  }, [weeks, store]);
+  }, [store, weeks]);
+}
+
+export function usePersistedWeeks({ store, fallback }: UsePersistedWeeksArgs) {
+  const [weeks, setWeeks] = useWeeksLoadedOnMount(store, fallback);
+  useSaveWeeksOnChange(store, weeks);
 
   return { weeks, setWeeks } as const;
 }
