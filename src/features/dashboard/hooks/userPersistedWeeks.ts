@@ -10,14 +10,12 @@ type UsePersistedWeeksArgs = {
 const loadFromStoreOrFallback = (store: WeeksStore, fallback: WeekEntry[]) =>
   store.load() ?? fallback;
 
-// Hook = allowed to call useState
 function useWeeksLoadedOnMount(store: WeeksStore, fallback: WeekEntry[]) {
   return React.useState<WeekEntry[]>(() =>
     loadFromStoreOrFallback(store, fallback),
   );
 }
 
-// Hook = allowed to call useRef/useEffect
 function useSaveWeeksOnChange(store: WeeksStore, weeks: WeekEntry[]) {
   const hasRenderedOnceRef = React.useRef(false);
 
