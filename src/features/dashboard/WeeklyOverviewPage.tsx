@@ -20,6 +20,7 @@ import {
 import { getMondayOfWeek } from "./util/dateHelpers";
 import { AddWeekSection } from "./AddWeekSection";
 import { usePersistedWeeks } from "./hooks/userPersistedWeeks";
+import { WeightHistoryChart } from "./charts/WeightHistoryChart";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
@@ -118,6 +119,8 @@ export function WeeklyOverviewPage({
   return (
     <main>
       <h1>Weekly Fitness Overview</h1>
+
+      <WeightHistoryChart />
 
       <AddWeekSection
         existingWeekOfs={existingWeekOfs}

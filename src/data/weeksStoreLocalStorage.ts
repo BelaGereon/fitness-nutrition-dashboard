@@ -32,7 +32,7 @@ const isDayEntry = (v: unknown): v is DayEntry => {
 const isDaysRecord = (v: unknown): v is Record<DayId, DayEntry> => {
   if (!isObject(v)) return false;
   return DAY_IDS.every((dayId) =>
-    isDayEntry((v as Record<string, unknown>)[dayId])
+    isDayEntry((v as Record<string, unknown>)[dayId]),
   );
 };
 
