@@ -3,7 +3,6 @@ import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
 import { WeekCard } from "./WeekCard";
 import { createLocalStorageWeeksStore } from "../../data/weeksStoreLocalStorage";
-
 import {
   DAY_IDS,
   type DayEntry,
@@ -18,43 +17,15 @@ import {
   createJsonWeeksExportFormatter,
   createWeeksExportService,
 } from "../../data/weeksExport";
+import { getMondayOfWeek } from "./util/dateHelpers";
+import { AddWeekSection } from "./AddWeekSection";
+import { usePersistedWeeks } from "./hooks/userPersistedWeeks";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
-  getNow?: () => Date;
+  getTodaysDate?: () => Date;
   createWeekId?: () => string;
   weeksExportService?: WeeksExportService;
-};
-
-const toISODate = (d: Date): string => {
-  const x = new Date(d);
-  // midday avoids DST edge cases
-  x.setHours(12, 0, 0, 0);
-  const yyyy = x.getFullYear();
-  const mm = String(x.getMonth() + 1).padStart(2, "0");
-  const dd = String(x.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-};
-
-const mondayOfWeek = (d: Date): string => {
-  const x = new Date(d);
-  x.setHours(12, 0, 0, 0);
-  // JS: Sun=0..Sat=6, we want Mon=0..Sun=6
-  const offset = (x.getDay() + 6) % 7;
-  x.setDate(x.getDate() - offset);
-  return toISODate(x);
-};
-
-const addDaysISO = (isoDate: string, days: number): string => {
-  // treat isoDate as local date at midday
-  const d = new Date(`${isoDate}T12:00:00`);
-  d.setDate(d.getDate() + days);
-  return toISODate(d);
-};
-
-const normalizeWeekOf = (inputDate: string): string => {
-  const d = new Date(`${inputDate}T12:00:00`);
-  return mondayOfWeek(d);
 };
 
 const createEmptyDays = (): Record<DayId, DayEntry> => {
@@ -71,26 +42,15 @@ const defaultCreateWeekId = () => {
   return `w_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 };
 
-const firstMissingWeekOf = (args: {
-  startWeekOf: string;
-  existingWeekOfs: Set<string>;
-}) => {
-  let candidate = args.startWeekOf;
-  while (args.existingWeekOfs.has(candidate)) {
-    candidate = addDaysISO(candidate, 7);
-  }
-  return candidate;
-};
-
 export function WeeklyOverviewPage({
   weeksStore,
-  getNow = () => new Date(),
+  getTodaysDate = () => new Date(),
   createWeekId = defaultCreateWeekId,
   weeksExportService,
 }: WeeklyOverviewPageProps) {
   const store = React.useMemo(
     () => weeksStore ?? createLocalStorageWeeksStore(window.localStorage),
-    [weeksStore]
+    [weeksStore],
   );
 
   const exportService = React.useMemo(() => {
@@ -105,31 +65,19 @@ export function WeeklyOverviewPage({
     });
   }, [weeksExportService]);
 
-  const [weeks, setWeeks] = React.useState<WeekEntry[]>(() => {
-    return store.load() ?? sampleWeeks;
+  const { weeks, setWeeks } = usePersistedWeeks({
+    store,
+    fallback: sampleWeeks,
   });
-
-  const didMountRef = React.useRef(false);
-  React.useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-    store.save(weeks);
-  }, [weeks, store]);
 
   const trend = computeTrendMetrics(weeks);
   const weeksById = new Map(weeks.map((week) => [week.id, week]));
 
   const [openWeekId, setOpenWeekId] = React.useState<string | null>(null);
 
-  const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [addWeekDate, setAddWeekDate] = React.useState("");
-  const [addError, setAddError] = React.useState<string | null>(null);
-
   const existingWeekOfs = React.useMemo(
     () => new Set(weeks.map((w) => w.weekOf)),
-    [weeks]
+    [weeks],
   );
 
   const toggleWeek = (id: string) => {
@@ -138,17 +86,19 @@ export function WeeklyOverviewPage({
 
   const saveWeek = (updatedWeek: WeekEntry) => {
     setWeeks((weeks) =>
-      weeks.map((week) => (week.id === updatedWeek.id ? updatedWeek : week))
+      weeks.map((week) => (week.id === updatedWeek.id ? updatedWeek : week)),
     );
   };
 
-  const addWeek = React.useCallback(
+  const tryAddWeek = React.useCallback(
     (weekOf: string) => {
-      const normalized = normalizeWeekOf(weekOf);
+      const normalized = getMondayOfWeek(weekOf);
 
       if (existingWeekOfs.has(normalized)) {
-        setAddError(`Week already exists for ${normalized}`);
-        return;
+        return {
+          ok: false as const,
+          error: `Week already exists for ${normalized}`,
+        };
       }
 
       const newWeek: WeekEntry = {
@@ -159,81 +109,25 @@ export function WeeklyOverviewPage({
 
       setWeeks((prev) => [...prev, newWeek]);
       setOpenWeekId(newWeek.id);
-      setIsAddOpen(false);
-      setAddError(null);
+
+      return { ok: true as const };
     },
-    [createWeekId, existingWeekOfs]
+    [createWeekId, existingWeekOfs, setWeeks],
   );
-
-  const onClickAddWeek = () => {
-    const currentWeekOf = mondayOfWeek(getNow());
-
-    // Fast path: if current week isn't present yet, create it immediately.
-    if (!existingWeekOfs.has(currentWeekOf)) {
-      addWeek(currentWeekOf);
-      return;
-    }
-
-    // Otherwise, open a picker to add a different week.
-    const suggested = firstMissingWeekOf({
-      startWeekOf: addDaysISO(currentWeekOf, 7),
-      existingWeekOfs,
-    });
-
-    setAddWeekDate(suggested);
-    setAddError(null);
-    setIsAddOpen(true);
-  };
-
-  const cancelAdd = () => {
-    setIsAddOpen(false);
-    setAddError(null);
-  };
 
   return (
     <main>
       <h1>Weekly Fitness Overview</h1>
 
-      <section aria-label="Add week section">
-        <button type="button" onClick={onClickAddWeek}>
-          Add week
-        </button>
-
-        {isAddOpen && (
-          <div data-testid="add-week-form">
-            <h2>Add a new week</h2>
-
-            {addError && <div role="alert">{addError}</div>}
-
-            <label htmlFor="add-week-date">
-              Week to add
-              <input
-                id="add-week-date"
-                type="date"
-                value={addWeekDate}
-                onChange={(e) => setAddWeekDate(e.target.value)}
-              />
-            </label>
-
-            <div>
-              <button
-                type="button"
-                onClick={() => addWeek(addWeekDate)}
-                disabled={addWeekDate.trim() === ""}
-              >
-                Create
-              </button>
-              <button type="button" onClick={cancelAdd}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
+      <AddWeekSection
+        existingWeekOfs={existingWeekOfs}
+        getTodaysDate={getTodaysDate}
+        onAddWeek={tryAddWeek}
+      />
 
       <button
         type="button"
-        onClick={() => exportService.exportWeeks(weeks, getNow())}
+        onClick={() => exportService.exportWeeks(weeks, getTodaysDate())}
       >
         Export data
       </button>

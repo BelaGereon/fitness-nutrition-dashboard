@@ -32,17 +32,17 @@ const setup = (
     now?: Date;
     createWeekId?: () => string;
     exportService?: WeeksExportService;
-  }
+  },
 ) => {
   const getNow = opts?.now ? () => opts.now as Date : undefined;
 
   render(
     <WeeklyOverviewPage
       weeksStore={weeksStore}
-      getNow={getNow}
+      getTodaysDate={getNow}
       createWeekId={opts?.createWeekId}
       weeksExportService={opts?.exportService}
-    />
+    />,
   );
 
   const user = userEvent.setup();
@@ -63,7 +63,7 @@ describe("WeeklyOverviewPage", () => {
   it("renders: one card per trend week", () => {
     setup();
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
-      sampleWeeksTrend.length
+      sampleWeeksTrend.length,
     );
   });
 
@@ -91,10 +91,10 @@ describe("WeeklyOverviewPage", () => {
     const details = await openWeek(user, firstTrendWeek);
 
     expect(
-      gridCell(details, { dayId: "mon", metric: "weight" })
+      gridCell(details, { dayId: "mon", metric: "weight" }),
     ).toBeInTheDocument();
     expect(
-      gridCell(details, { dayId: "sun", metric: "protein" })
+      gridCell(details, { dayId: "sun", metric: "protein" }),
     ).toBeInTheDocument();
   });
 
@@ -136,7 +136,7 @@ describe("WeeklyOverviewPage", () => {
 
     expect(numberOf(details, /avg weight:/i)).toBeCloseTo(
       firstTrendWeek.avgWeightKg!,
-      1
+      1,
     );
   });
 
@@ -200,22 +200,22 @@ describe("WeeklyOverviewPage", () => {
               ...w.days,
               mon: { ...w.days.mon, weightKg: 80 },
             },
-          }
+          },
     );
 
     const expectedAvgWeightAfter = computeTrendMetrics(updatedWeeks).find(
-      (w) => w.id === firstTrendWeek.id
+      (w) => w.id === firstTrendWeek.id,
     )!.avgWeightKg!;
 
     expect(
       extractFirstNumber(
-        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
-      )
+        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? "",
+      ),
     ).toBeCloseTo(80, 1);
 
     expect(numberOf(details, /avg weight:/i)).toBeCloseTo(
       expectedAvgWeightAfter,
-      1
+      1,
     );
   });
 
@@ -225,7 +225,7 @@ describe("WeeklyOverviewPage", () => {
 
     const avgWeightBefore = numberOf(details, /avg weight:/i);
     const monWeightBefore = extractFirstNumber(
-      gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
+      gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? "",
     );
 
     await enterEditMode(user, details);
@@ -241,8 +241,8 @@ describe("WeeklyOverviewPage", () => {
     expect(numberOf(details, /avg weight:/i)).toBeCloseTo(avgWeightBefore, 1);
     expect(
       extractFirstNumber(
-        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? ""
-      )
+        gridCell(details, { dayId: "mon", metric: "weight" }).textContent ?? "",
+      ),
     ).toBeCloseTo(monWeightBefore, 1);
   });
 
@@ -261,7 +261,7 @@ describe("WeeklyOverviewPage", () => {
     await saveEdit(user, details);
 
     expect(
-      gridCell(details, { dayId: "mon", metric: "weight" })
+      gridCell(details, { dayId: "mon", metric: "weight" }),
     ).toHaveTextContent(/n\/a/i);
 
     const updatedWeeks = sampleWeeks.map((w) =>
@@ -273,11 +273,11 @@ describe("WeeklyOverviewPage", () => {
               ...w.days,
               mon: { ...w.days.mon, weightKg: undefined },
             },
-          }
+          },
     );
 
     const expectedAvgWeightAfter = computeTrendMetrics(updatedWeeks).find(
-      (w) => w.id === firstTrendWeek.id
+      (w) => w.id === firstTrendWeek.id,
     )?.avgWeightKg;
 
     const avgWeightAfterText = textOf(details, /avg weight:/i);
@@ -287,14 +287,14 @@ describe("WeeklyOverviewPage", () => {
     } else {
       expect(extractFirstNumber(avgWeightAfterText)).toBeCloseTo(
         expectedAvgWeightAfter,
-        1
+        1,
       );
     }
   });
 
   it("persistence: initializes from WeeksStore.load when it returns weeks", async () => {
     const storedWeeks = sampleWeeks.map((w) =>
-      w.id !== firstTrendWeek.id ? w : { ...w, avgStepsPerDay: 12345 }
+      w.id !== firstTrendWeek.id ? w : { ...w, avgStepsPerDay: 12345 },
     );
 
     const store = createStoreStub(storedWeeks);
@@ -312,7 +312,7 @@ describe("WeeklyOverviewPage", () => {
     setup(store);
 
     expect(screen.getAllByRole("heading", { level: 2 })).toHaveLength(
-      sampleWeeksTrend.length
+      sampleWeeksTrend.length,
     );
   });
 
@@ -350,11 +350,11 @@ describe("WeeklyOverviewPage", () => {
     await user.click(screen.getByRole("button", { name: /add week/i }));
 
     expect(
-      screen.getByRole("button", { name: "Week of 2026-01-05" })
+      screen.getByRole("button", { name: "Week of 2026-01-05" }),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByTestId("week-card-new-week-id-details")
+      screen.getByTestId("week-card-new-week-id-details"),
     ).toBeInTheDocument();
 
     await waitFor(() => expect(store.save).toHaveBeenCalledTimes(1));
@@ -372,10 +372,10 @@ describe("WeeklyOverviewPage", () => {
     const form = screen.getByTestId("add-week-form");
     expect(within(form).getByLabelText(/week to add/i)).toBeInTheDocument();
     expect(
-      within(form).getByRole("button", { name: /create/i })
+      within(form).getByRole("button", { name: /create/i }),
     ).toBeInTheDocument();
     expect(
-      within(form).getByRole("button", { name: /cancel/i })
+      within(form).getByRole("button", { name: /cancel/i }),
     ).toBeInTheDocument();
   });
 
@@ -420,10 +420,10 @@ describe("WeeklyOverviewPage", () => {
 
     expect(screen.queryByTestId("add-week-form")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Week of 2026-01-05" })
+      screen.getByRole("button", { name: "Week of 2026-01-05" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId("week-card-new-week-id-details")
+      screen.getByTestId("week-card-new-week-id-details"),
     ).toBeInTheDocument();
   });
 
