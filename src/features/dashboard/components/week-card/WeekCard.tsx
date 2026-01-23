@@ -70,8 +70,8 @@ export function WeekCard({
             avgCalories={avgCalories}
             avgProteinG={avgProteinG}
             avgProteinPerKg={avgProteinPerKg}
+            avgWeightKg={avgWeightKg}
           />
-          {/* Controls at the top (matches your refactor) */}
           {!isEditing ? (
             <button type="button" onClick={startEdit}>
               Edit

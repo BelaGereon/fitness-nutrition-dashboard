@@ -7,6 +7,7 @@ type WeeklyAvgMacrosChartProps = {
   avgCalories: number | undefined;
   avgProteinG: number | undefined;
   avgProteinPerKg: number | undefined;
+  avgWeightKg: number | undefined;
 };
 
 export function WeeklyAvgMacrosChart({
@@ -14,10 +15,35 @@ export function WeeklyAvgMacrosChart({
   avgCalories,
   avgProteinG,
   avgProteinPerKg,
+  avgWeightKg,
 }: WeeklyAvgMacrosChartProps) {
+  const goals = React.useMemo(() => {
+    const avgProteinPerKgGoal =
+      avgWeightKg === undefined || avgWeightKg === 0
+        ? undefined
+        : 166 / avgWeightKg;
+
+    return {
+      avgSteps: 9000,
+      avgCalories: 3100,
+      avgProteinG: 166,
+      avgProteinPerKg: avgProteinPerKgGoal,
+    };
+  }, [avgWeightKg]);
+
   const rawValues = React.useMemo(
     () => [avgSteps, avgCalories, avgProteinG, avgProteinPerKg],
     [avgSteps, avgCalories, avgProteinG, avgProteinPerKg],
+  );
+
+  const goalValues = React.useMemo(
+    () => [
+      goals.avgSteps,
+      goals.avgCalories,
+      goals.avgProteinG,
+      goals.avgProteinPerKg,
+    ],
+    [goals],
   );
 
   const formattedValues = React.useMemo(
@@ -31,13 +57,31 @@ export function WeeklyAvgMacrosChart({
   );
 
   const series = React.useMemo(() => {
-    return rawValues.map((value) => value ?? 0);
-  }, [rawValues]);
+    return rawValues.map((value, index) => {
+      const goal = goalValues[index];
+      if (value === undefined || goal === undefined || goal <= 0) return 0;
+      return Math.min((value / goal) * 100, 100);
+    });
+  }, [goalValues, rawValues]);
+
+  const colors = React.useMemo(() => {
+    const baseColors = ["#3B82F6", "#F59E0B", "#EC4899", "#8B5CF6"];
+    const victoryGreen = "#00db50";
+
+    return rawValues.map((value, index) => {
+      const goal = goalValues[index];
+      if (value !== undefined && goal !== undefined && value >= goal) {
+        return victoryGreen;
+      }
+      return baseColors[index] ?? baseColors[0];
+    });
+  }, [goalValues, rawValues]);
 
   const options = {
     chart: {
       animations: { enabled: true },
     },
+    colors,
     plotOptions: {
       radialBar: {
         offsetY: 0,
