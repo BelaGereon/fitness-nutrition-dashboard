@@ -2,7 +2,7 @@ import React from "react";
 import ReactApexChart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import type { WeekEntry } from "../../../../../domain/week";
-import { buildWeightPointsFromWeeks } from "./weightSeries";
+import { buildWeightPointsFromWeeks } from "./util/weightSeries";
 
 type WeightHistoryChartProps = {
   weeks: WeekEntry[];

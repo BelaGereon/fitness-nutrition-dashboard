@@ -1,18 +1,14 @@
 // src/features/weeklyOverview/charts/weightSeries.ts
-import type { WeekEntry, DayId } from "../../../../../domain/week";
+import type { WeekEntry, DayId } from "../../../../../../domain/week";
+import {
+  addDaysToISODate,
+  mondayOfWeek,
+} from "../../../../util/date/dateHelpers";
 
 export type Point = { x: number; y: number }; // x = timestamp (ms), y = weight
 
 const DAY_ORDER: DayId[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-const DAY_OFFSET_FROM_MONDAY: Record<DayId, number> = {
-  mon: 0,
-  tue: 1,
-  wed: 2,
-  thu: 3,
-  fri: 4,
-  sat: 5,
-  sun: 6,
-};
+const baseDateFromIso = (isoDate: string) => new Date(`${isoDate}T12:00:00`);
 
 /**
  * Convert ISO YYYY-MM-DD into a stable local timestamp.
@@ -31,15 +27,15 @@ export function buildWeightPointsFromWeeks(weeks: WeekEntry[]): Point[] {
   const points: Point[] = [];
 
   for (const week of weeks) {
+    const mondayIso = mondayOfWeek(baseDateFromIso(week.weekOf));
     for (const dayId of DAY_ORDER) {
       const day = week.days[dayId];
       const w = day?.weightKg;
       if (w === undefined) continue;
 
-      // Derive the day's ISO date from week.weekOf (which is Monday ISO)
-      const x =
-        toLocalMiddayTimestampMs(week.weekOf) +
-        DAY_OFFSET_FROM_MONDAY[dayId] * 24 * 60 * 60 * 1000;
+      const offset = DAY_ORDER.indexOf(dayId);
+      const dayIso = addDaysToISODate(mondayIso, offset);
+      const x = toLocalMiddayTimestampMs(dayIso);
 
       points.push({ x, y: w });
     }
