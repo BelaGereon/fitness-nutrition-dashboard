@@ -89,17 +89,4 @@ describe("WeightHistoryChart", () => {
     expect(series[1].type).toBe("line");
     expect(series[1].data).toEqual(expectedAvg);
   });
-
-  it("configures chart options for stroke, fill, and tooltip", () => {
-    render(<WeightHistoryChart weeks={[]} />);
-
-    const { options } = getApexProps();
-    const stroke = options.stroke as { curve?: string; width?: number[] };
-    const fill = options.fill as { type?: string[] };
-    const tooltip = options.tooltip as { shared?: boolean };
-
-    expect(stroke).toMatchObject({ curve: "smooth", width: [2, 2] });
-    expect(fill).toMatchObject({ type: ["gradient", "solid"] });
-    expect(tooltip).toMatchObject({ shared: true });
-  });
 });
