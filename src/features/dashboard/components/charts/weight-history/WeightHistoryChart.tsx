@@ -40,7 +40,6 @@ export function WeightHistoryChart({ weeks }: WeightHistoryChartProps) {
 
   const options: ApexOptions = {
     chart: {
-      type: "area",
       animations: { enabled: true },
       toolbar: { show: false },
       zoom: { enabled: true },

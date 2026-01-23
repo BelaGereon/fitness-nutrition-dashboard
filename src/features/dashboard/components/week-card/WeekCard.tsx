@@ -2,6 +2,7 @@ import type { WeekEntry } from "../../../../domain/week";
 import type { WeekTrendMetrics } from "../../../../domain/weekTrend";
 import { useWeekEditor } from "../../hooks/useWeekEditor";
 import { formatData } from "../../util/format";
+import { WeeklyAvgMacrosChart } from "../charts/weekly-avg-macros/WeeklyAvgMacrosChart";
 import { WeekEntryGrid } from "../week-entry-grid/WeekEntryGrid";
 
 type WeekCardProps = {
@@ -64,6 +65,12 @@ export function WeekCard({
 
       {isOpen && (
         <div id={detailsId} data-testid={detailsId}>
+          <WeeklyAvgMacrosChart
+            avgSteps={base.avgStepsPerDay}
+            avgCalories={avgCalories}
+            avgProteinG={avgProteinG}
+            avgProteinPerKg={avgProteinPerKg}
+          />
           {/* Controls at the top (matches your refactor) */}
           {!isEditing ? (
             <button type="button" onClick={startEdit}>
