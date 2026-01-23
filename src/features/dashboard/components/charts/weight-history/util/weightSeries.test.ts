@@ -4,7 +4,10 @@ import {
   addDaysToISODate,
   toLocalMiddayTimestampMs,
 } from "../../../../util/date/dateHelpers";
-import { buildWeightPointsFromWeeks } from "./weightSeries";
+import {
+  buildAvgWeightLineFromWeeks,
+  buildWeightPointsFromWeeks,
+} from "./weightSeries";
 
 const emptyDays = (): Record<DayId, DayEntry> => ({
   mon: {},
@@ -124,6 +127,61 @@ describe("weightSeries", () => {
           x: toLocalMiddayTimestampMs(addDaysToISODate(weekB.weekOf, 5)),
           y: 78.9,
         },
+      ]);
+    });
+  });
+
+  describe("buildAvgWeightLineFromWeeks", () => {
+    it("builds points for each week's average weight", () => {
+      const weekA = makeWeek("w1", "2025-12-01", {
+        mon: 80.0,
+        wed: 79.0,
+        fri: 78.0,
+      }); // avg 79.0
+      const weekB = makeWeek("w2", "2025-12-08", {
+        tue: 77.0,
+        thu: 79.0,
+      }); // avg 78.0
+      const weekC = makeWeek("w3", "2025-12-15", {}); // no weights
+
+      const points = buildAvgWeightLineFromWeeks([weekA, weekB, weekC]);
+      expect(points).toEqual([
+        {
+          x: toLocalMiddayTimestampMs(weekA.weekOf),
+          y: 79.0,
+        },
+        {
+          x: toLocalMiddayTimestampMs(weekB.weekOf),
+          y: 78.0,
+        },
+      ]);
+    });
+
+    it("skips weeks without weight data", () => {
+      const week = makeWeek("w1", "2025-12-01", {});
+
+      const points = buildAvgWeightLineFromWeeks([week]);
+      expect(points).toHaveLength(0);
+    });
+
+    it("sorts average points chronologically", () => {
+      const weekLate = makeWeek("w2", "2025-12-08", { mon: 79.0 });
+      const weekEarly = makeWeek("w1", "2025-12-01", { fri: 78.0 });
+
+      const points = buildAvgWeightLineFromWeeks([weekLate, weekEarly]);
+      expect(points).toEqual([
+        { x: toLocalMiddayTimestampMs(weekEarly.weekOf), y: 78.0 },
+        { x: toLocalMiddayTimestampMs(weekLate.weekOf), y: 79.0 },
+      ]);
+    });
+
+    it("dedupes average points by timestamp, keeping the last value", () => {
+      const weekA = makeWeek("w1", "2025-12-01", { mon: 80.0 });
+      const weekB = makeWeek("w2", "2025-12-01", { mon: 82.0 });
+
+      const points = buildAvgWeightLineFromWeeks([weekA, weekB]);
+      expect(points).toEqual([
+        { x: toLocalMiddayTimestampMs(weekA.weekOf), y: 82.0 },
       ]);
     });
   });

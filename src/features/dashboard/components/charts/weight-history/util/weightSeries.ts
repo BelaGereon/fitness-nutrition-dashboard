@@ -1,5 +1,9 @@
 // src/features/weeklyOverview/charts/weightSeries.ts
-import { type WeekEntry, DAY_IDS } from "../../../../../../domain/week";
+import {
+  type WeekEntry,
+  computeWeekMetrics,
+  DAY_IDS,
+} from "../../../../../../domain/week";
 import {
   addDaysToISODate,
   mondayOfWeek,
@@ -37,6 +41,30 @@ export function buildWeightPointsFromWeeks(weeks: WeekEntry[]): Point[] {
     const last = deduped[deduped.length - 1];
     if (!last || last.x !== p.x) deduped.push(p);
     else deduped[deduped.length - 1] = p; // keep latest
+  }
+
+  return deduped;
+}
+
+export function buildAvgWeightLineFromWeeks(weeks: WeekEntry[]): Point[] {
+  const points: Point[] = [];
+
+  for (const week of weeks) {
+    const avgWeight = computeWeekMetrics(week)?.avgWeightKg;
+    if (avgWeight === undefined) continue;
+
+    const mondayIso = mondayOfWeek(baseDateFromIso(week.weekOf));
+    const x = toLocalMiddayTimestampMs(mondayIso);
+    points.push({ x, y: avgWeight });
+  }
+
+  points.sort((a, b) => a.x - b.x);
+
+  const deduped: Point[] = [];
+  for (const p of points) {
+    const last = deduped[deduped.length - 1];
+    if (!last || last.x !== p.x) deduped.push(p);
+    else deduped[deduped.length - 1] = p;
   }
 
   return deduped;
