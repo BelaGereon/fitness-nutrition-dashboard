@@ -20,7 +20,7 @@ import {
 import { getMondayOfWeek } from "./util/date/dateHelpers";
 import { AddWeekSection } from "./AddWeekSection";
 import { usePersistedWeeks } from "./hooks/userPersistedWeeks";
-import { WeightHistoryChart } from "./charts/WeightHistoryChart";
+import { WeightHistoryChart } from "./components/charts/WeightHistoryChart";
 
 type WeeklyOverviewPageProps = {
   weeksStore?: WeeksStore;
