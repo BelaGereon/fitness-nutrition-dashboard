@@ -3,25 +3,13 @@ import type { WeekEntry, DayId } from "../../../../../../domain/week";
 import {
   addDaysToISODate,
   mondayOfWeek,
+  toLocalMiddayTimestampMs,
 } from "../../../../util/date/dateHelpers";
 
 export type Point = { x: number; y: number }; // x = timestamp (ms), y = weight
 
 const DAY_ORDER: DayId[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 const baseDateFromIso = (isoDate: string) => new Date(`${isoDate}T12:00:00`);
-
-/**
- * Convert ISO YYYY-MM-DD into a stable local timestamp.
- * Using midday local time avoids DST / timezone "off-by-one day" surprises.
- */
-export const toLocalMiddayTimestampMs = (isoDate: string): number => {
-  const [yyyyStr, mmStr, ddStr] = isoDate.split("-");
-  const yyyy = Number(yyyyStr);
-  const mm = Number(mmStr);
-  const dd = Number(ddStr);
-  // month is 0-based in JS Date
-  return new Date(yyyy, mm - 1, dd, 12, 0, 0, 0).getTime();
-};
 
 export function buildWeightPointsFromWeeks(weeks: WeekEntry[]): Point[] {
   const points: Point[] = [];

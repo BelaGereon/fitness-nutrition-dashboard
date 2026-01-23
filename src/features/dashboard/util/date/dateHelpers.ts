@@ -42,6 +42,15 @@ export const findNextUntrackedWeek = (args: {
   return candidate;
 };
 
+export const toLocalMiddayTimestampMs = (isoDate: string): number => {
+  const [yyyyStr, mmStr, ddStr] = isoDate.split("-");
+  const yyyy = Number(yyyyStr);
+  const mm = Number(mmStr);
+  const dd = Number(ddStr);
+  // month is 0-based in JS Date
+  return new Date(yyyy, mm - 1, dd, 12, 0, 0, 0).getTime();
+};
+
 function createNewDateAtMidday(d: Date) {
   const date = new Date(d);
   date.setHours(12, 0, 0, 0);

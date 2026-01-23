@@ -5,6 +5,7 @@ import {
   mondayOfWeek,
   getMondayOfWeek,
   convertDateToISO,
+  toLocalMiddayTimestampMs,
 } from "./dateHelpers";
 
 describe("dateHelpers", () => {
@@ -48,5 +49,25 @@ describe("dateHelpers", () => {
   it("formats dates as YYYY-MM-DD at local midday to avoid timezone drift", () => {
     const nearMidnight = new Date(2025, 11, 31, 23, 59, 0); // local Dec 31
     expect(convertDateToISO(nearMidnight)).toBe("2025-12-31");
+  });
+
+  describe("toLocalMiddayTimestampMs", () => {
+    it("builds a local midday timestamp for the provided ISO date", () => {
+      const iso = "2025-12-01";
+      const expected = new Date(2025, 11, 1, 12, 0, 0, 0).getTime();
+
+      const result = toLocalMiddayTimestampMs(iso);
+
+      expect(result).toBe(expected);
+    });
+
+    it("handles leading zeros in month/day fields", () => {
+      const iso = "2025-01-05";
+      const expected = new Date(2025, 0, 5, 12, 0, 0, 0).getTime();
+
+      const result = toLocalMiddayTimestampMs(iso);
+
+      expect(result).toBe(expected);
+    });
   });
 });

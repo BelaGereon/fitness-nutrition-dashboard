@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { DayEntry, DayId, WeekEntry } from "../../../../../../domain/week";
-import { addDaysToISODate } from "../../../../util/date/dateHelpers";
 import {
-  buildWeightPointsFromWeeks,
+  addDaysToISODate,
   toLocalMiddayTimestampMs,
-} from "./weightSeries";
+} from "../../../../util/date/dateHelpers";
+import { buildWeightPointsFromWeeks } from "./weightSeries";
 
 const emptyDays = (): Record<DayId, DayEntry> => ({
   mon: {},
@@ -34,26 +34,6 @@ const makeWeek = (
 };
 
 describe("weightSeries", () => {
-  describe("toLocalMiddayTimestampMs", () => {
-    it("builds a local midday timestamp for the provided ISO date", () => {
-      const iso = "2025-12-01";
-      const expected = new Date(2025, 11, 1, 12, 0, 0, 0).getTime();
-
-      const result = toLocalMiddayTimestampMs(iso);
-
-      expect(result).toBe(expected);
-    });
-
-    it("handles leading zeros in month/day fields", () => {
-      const iso = "2025-01-05";
-      const expected = new Date(2025, 0, 5, 12, 0, 0, 0).getTime();
-
-      const result = toLocalMiddayTimestampMs(iso);
-
-      expect(result).toBe(expected);
-    });
-  });
-
   describe("buildWeightPointsFromWeeks", () => {
     it("maps week day weights to timestamped points", () => {
       const week = makeWeek("w1", "2025-12-01", {
