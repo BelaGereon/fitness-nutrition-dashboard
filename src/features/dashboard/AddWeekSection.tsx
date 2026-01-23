@@ -3,7 +3,7 @@ import {
   addDaysToISODate,
   findNextUntrackedWeek,
   mondayOfWeek,
-} from "./util/dateHelpers";
+} from "./util/date/dateHelpers";
 
 type AddWeekSectionProps = {
   existingWeekOfs: Set<string>;

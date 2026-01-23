@@ -3,9 +3,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { WeekCard } from "./WeekCard";
-import type { WeekEntry } from "../../domain/week";
-import type { WeekTrendMetrics } from "../../domain/weekTrend";
-import { detailsTestIdForWeekId } from "./util/testUtils";
+import type { WeekEntry } from "../../../../domain/week";
+import type { WeekTrendMetrics } from "../../../../domain/weekTrend";
+import { detailsTestIdForWeekId } from "../../util/testUtils";
 
 const base: WeekEntry = {
   id: "test-week",
@@ -58,7 +58,7 @@ describe("WeekCard", () => {
   it("renders: week title as accessible button", () => {
     setup();
     expect(
-      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` }),
     ).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe("WeekCard", () => {
     setup({ onToggle });
 
     await user.click(
-      screen.getByRole("button", { name: `Week of ${trend.weekOf}` })
+      screen.getByRole("button", { name: `Week of ${trend.weekOf}` }),
     );
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
@@ -103,7 +103,7 @@ describe("WeekCard", () => {
       setup({ isOpen: true });
 
       const details = within(
-        screen.getByTestId(detailsTestIdForWeekId(trend.id))
+        screen.getByTestId(detailsTestIdForWeekId(trend.id)),
       );
 
       // Be resilient to exact wording; only assert that the values show up.
@@ -120,7 +120,7 @@ describe("WeekCard", () => {
       setup({ isOpen: true, onSaveWeek });
 
       const details = within(
-        screen.getByTestId(detailsTestIdForWeekId(trend.id))
+        screen.getByTestId(detailsTestIdForWeekId(trend.id)),
       );
 
       await user.click(details.getByRole("button", { name: /^edit$/i }));
@@ -167,7 +167,7 @@ describe("WeekCard", () => {
       setup({ isOpen: true, onSaveWeek });
 
       const details = within(
-        screen.getByTestId(detailsTestIdForWeekId(trend.id))
+        screen.getByTestId(detailsTestIdForWeekId(trend.id)),
       );
 
       await user.click(details.getByRole("button", { name: /^edit$/i }));
@@ -191,7 +191,7 @@ describe("WeekCard", () => {
       setup({ isOpen: true, onSaveWeek });
 
       const details = within(
-        screen.getByTestId(detailsTestIdForWeekId(trend.id))
+        screen.getByTestId(detailsTestIdForWeekId(trend.id)),
       );
 
       await user.click(details.getByRole("button", { name: /^edit$/i }));
@@ -261,7 +261,7 @@ describe("WeekCard", () => {
       setup({ trend: incompleteTrend, base: incompleteBase, isOpen: true });
 
       const details = screen.getByTestId(
-        detailsTestIdForWeekId(incompleteTrend.id)
+        detailsTestIdForWeekId(incompleteTrend.id),
       );
 
       expect(within(details).getByText(label)).toHaveTextContent(/n\/a/i);

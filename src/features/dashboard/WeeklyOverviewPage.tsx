@@ -1,7 +1,7 @@
 import React from "react";
 import { sampleWeeks } from "../../data/sample-data/sampleWeek";
 import { computeTrendMetrics } from "../../domain/weekTrend";
-import { WeekCard } from "./WeekCard";
+import { WeekCard } from "./components/week-card/WeekCard";
 import { createLocalStorageWeeksStore } from "../../data/weeksStoreLocalStorage";
 import {
   DAY_IDS,
@@ -17,7 +17,7 @@ import {
   createJsonWeeksExportFormatter,
   createWeeksExportService,
 } from "../../data/weeksExport";
-import { getMondayOfWeek } from "./util/dateHelpers";
+import { getMondayOfWeek } from "./util/date/dateHelpers";
 import { AddWeekSection } from "./AddWeekSection";
 import { usePersistedWeeks } from "./hooks/userPersistedWeeks";
 import { WeightHistoryChart } from "./charts/WeightHistoryChart";

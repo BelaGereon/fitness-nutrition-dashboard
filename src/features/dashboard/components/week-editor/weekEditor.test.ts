@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { WeekEntry } from "../../domain/week";
+import type { WeekEntry } from "../../../../domain/week";
 import { fromDraftWeek, toDraftWeek } from "./weekEditor";
 
 const baseWeek = (): WeekEntry => ({
@@ -89,7 +89,7 @@ describe("weekEditor", () => {
       expect(updated.id).toBe(base.id);
       expect(updated.weekOf).toBe(base.weekOf);
       expect(updated.trainingSessionsDescription).toBe(
-        base.trainingSessionsDescription
+        base.trainingSessionsDescription,
       );
       expect(updated.totalSets).toBe(base.totalSets);
       expect(updated.totalVolumeKg).toBe(base.totalVolumeKg);

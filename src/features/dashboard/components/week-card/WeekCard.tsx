@@ -1,8 +1,8 @@
-import type { WeekEntry } from "../../domain/week";
-import type { WeekTrendMetrics } from "../../domain/weekTrend";
-import { formatData } from "./util/format";
-import { WeekEntryGrid } from "./WeekEntryGrid";
-import { useWeekEditor } from "./weekEditor";
+import type { WeekEntry } from "../../../../domain/week";
+import type { WeekTrendMetrics } from "../../../../domain/weekTrend";
+import { useWeekEditor } from "../../hooks/useWeekEditor";
+import { formatData } from "../../util/format";
+import { WeekEntryGrid } from "../week-entry-grid/WeekEntryGrid";
 
 type WeekCardProps = {
   trend: WeekTrendMetrics;
@@ -124,7 +124,7 @@ export function WeekCard({
             {weightChangeVsPrevKg !== undefined &&
             weightChangeVsPrevPercent !== undefined
               ? `${weightChangeVsPrevKg.toFixed(
-                  1
+                  1,
                 )} kg (${weightChangeVsPrevPercent.toFixed(1)}%)`
               : "n/a"}
           </div>

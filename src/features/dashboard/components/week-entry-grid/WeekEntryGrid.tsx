@@ -1,7 +1,7 @@
-import type { DayEntry, DayId } from "../../domain/week";
-import { DAY_IDS } from "../../domain/week";
-import { formatData } from "./util/format";
-import type { DraftDays, DraftDayEntry } from "./weekEditor";
+import type { DayEntry, DayId } from "../../../../domain/week";
+import { DAY_IDS } from "../../../../domain/week";
+import { formatData } from "../../util/format";
+import type { DraftDays, DraftDayEntry } from "../week-editor/weekEditor";
 
 type WeekEntryGridProps = {
   days: Record<DayId, DayEntry>;
