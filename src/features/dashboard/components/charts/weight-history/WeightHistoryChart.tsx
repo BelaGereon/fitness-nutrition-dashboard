@@ -45,7 +45,10 @@ export function WeightHistoryChart({ weeks }: WeightHistoryChartProps) {
       toolbar: { show: false },
       zoom: { enabled: true },
     },
-    stroke: { curve: "smooth", width: 2 },
+    stroke: {
+      curve: "smooth",
+      width: [2, 2],
+    },
     dataLabels: { enabled: false },
     fill: {
       type: ["gradient", "solid"],
